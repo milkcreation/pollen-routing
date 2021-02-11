@@ -1,0 +1,60 @@
+{
+  "name": "pollen-solutions/routing",
+  "description": "Pollen Routing Component - HTTP request mapping and HTTP response resolution.",
+  "homepage": "https://www.presstify.com/pollen-solutions/routing/",
+  "keywords": [
+    "pollen-solutions",
+    "component",
+    "PSR-7",
+    "PSR-15"
+  ],
+  "time": "2021-02-11",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Jordy Manner",
+      "email": "jordy@presstify.com",
+      "role": "Developper"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://composer.presstify.com/pollen-solutions/"
+    }
+  ],
+  "require": {
+    "php": ">=7.4",
+    "composer/composer": "^2.0",
+    "composer/installers": "~1.0",
+    "laminas/laminas-diactoros": "^2.5",
+    "laminas/laminas-httphandlerrunner": "^1.3",
+    "league/container": "^3.3",
+    "league/route": "^5.0",
+    "nyholm/psr7": "^1.3",
+    "pollen-solutions/container": "^1.0",
+    "pollen-solutions/http": "^1.0",
+    "pollen-solutions/support": "^1.0",
+    "pollen-solutions/view": "^1.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Pollen\\Routing\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Pollen\\Routing\\Test\\": "tests"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true
+  }
+}
