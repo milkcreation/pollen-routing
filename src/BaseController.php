@@ -50,7 +50,7 @@ class BaseController
      *
      * @return void
      */
-    public function boot(): void {}
+    public function boot(): void { }
 
     /**
      * Vérification d'activation du mode de deboguage.
@@ -63,6 +63,27 @@ class BaseController
     }
 
     /**
+     * Moteur d'affichage des gabarits d'affichage.
+     *
+     * @return ViewEngineInterface
+     */
+    public function getViewEngine(): ViewEngineInterface
+    {
+        if ($this->viewEngine === null) {
+            if ((!$dir = $this->viewEngineDirectory()) || !is_dir($dir)) {
+                throw new RuntimeException(
+                    sprintf(
+                        'View Engine Directory unavailable in HttpController [%s]',
+                        get_class($this)
+                    )
+                );
+            }
+            $this->viewEngine = new ViewEngine($dir);
+        }
+        return $this->viewEngine;
+    }
+
+    /**
      * Vérification d'existance d'un gabarit d'affichage.
      *
      * @param string $view Nom de qualification du gabarit.
@@ -71,7 +92,7 @@ class BaseController
      */
     public function hasView(string $view): bool
     {
-        return $this->viewEngine()->exists($view);
+        return $this->getViewEngine()->exists($view);
     }
 
     /**
@@ -111,13 +132,13 @@ class BaseController
      */
     public function render(string $view, array $data = []): string
     {
-        return $this->viewEngine()->render($view, $data);
+        return $this->getViewEngine()->render($view, $data);
     }
 
     /**
      * Récupération de la reponse HTTP.
      *
-     * @param string $content.
+     * @param string $content .
      * @param int $status
      * @param array $headers
      *
@@ -138,11 +159,11 @@ class BaseController
      *
      * @return RedirectResponse
      * /
-    public function route(string $name, array $params = [], int $status = 302, array $headers = []): RedirectResponse
-    {
-        return Redirect::route($name, $params, $status, $headers);
-    }
-    /**/
+     * public function route(string $name, array $params = [], int $status = 302, array $headers = []): RedirectResponse
+     * {
+     * return Redirect::route($name, $params, $status, $headers);
+     * }
+     * /**/
 
     /**
      * Définition de l'activation du mode de deboguage.
@@ -185,7 +206,7 @@ class BaseController
         $keys = !is_array($key) ? [$key => $value] : $key;
 
         foreach ($keys as $k => $v) {
-            $this->viewEngine()->share($k, $v);
+            $this->getViewEngine()->share($k, $v);
         }
 
         return $this;
@@ -202,25 +223,6 @@ class BaseController
     public function view(string $view, array $data = []): ResponseInterface
     {
         return $this->response($this->render($view, $data));
-    }
-
-    /**
-     * Moteur d'affichage des gabarits d'affichage.
-     *
-     * @return ViewEngineInterface
-     */
-    public function viewEngine(): ViewEngineInterface
-    {
-        if ($this->viewEngine === null) {
-            if ((!$dir = $this->viewEngineDirectory()) || !is_dir($dir)) {
-                throw new RuntimeException(sprintf(
-                    'View Engine Directory unavailable in HttpController [%s]',
-                    get_class($this)
-                ));
-            }
-            $this->viewEngine = new ViewEngine($dir);
-        }
-        return $this->viewEngine;
     }
 
     /**

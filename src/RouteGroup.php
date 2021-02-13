@@ -8,7 +8,7 @@ use Pollen\Routing\Concerns\StrategyAwareTrait;
 use Pollen\Support\Concerns\ContainerAwareTrait;
 use League\Route\RouteGroup as BaseRouteGroup;
 
-class RouteGroup extends BaseRouteGroup
+class RouteGroup extends BaseRouteGroup implements RouteGroupInterface
 {
     use ContainerAwareTrait;
     use StrategyAwareTrait;
