@@ -4,24 +4,32 @@ declare(strict_types=1);
 
 namespace Pollen\Routing;
 
-use FastRoute\RouteCollector;
+use Exception;
+use FastRoute\BadRouteException;
+use League\Route\Http\Exception\NotFoundException;
+use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Pollen\Http\Request;
+use Pollen\Http\RequestInterface;
+use Pollen\Http\Response;
+use Pollen\Http\ResponseInterface;
 use Pollen\Routing\Concerns\RouteCollectionTrait;
 use Pollen\Routing\Strategy\ApplicationStrategy;
+use Pollen\Support\Concerns\ConfigBagTrait;
 use Pollen\Support\Concerns\ContainerAwareTrait;
-use Exception;
-use League\Route\RouteGroup as BaseRouteGroup;
-use League\Route\Router as BaseRouter;
-use League\Route\Route as BaseRoute;
-use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Psr\Container\ContainerInterface as Container;
-use Psr\Http\Message\ResponseInterface as PsrResponse;
-use Psr\Http\Message\ServerRequestInterface as PsrRequest;
+use RuntimeException;
 
-class Router extends BaseRouter implements RouterInterface
+class Router implements RouterInterface
 {
+    use ConfigBagTrait;
     use ContainerAwareTrait;
     use RouteCollectionTrait;
+
+    /**
+     * Instance de la classe.
+     * @var static|null
+     */
+    private static $instance;
 
     /**
      * @var string|null
@@ -34,73 +42,45 @@ class Router extends BaseRouter implements RouterInterface
     protected $basePrefix = '';
 
     /**
-     * @param RouteCollector|null $routeCollector
+     * @var callable
+     */
+    protected $fallback;
+
+    /**
+     * @var RouteCollectionInterface
+     */
+    protected $routeCollection;
+
+    /**
+     * @param array $config
      * @param Container|null $container
      */
-    public function __construct(?RouteCollector $routeCollector = null, ?Container $container = null
-    ) {
-        if ($container !== null) {
+    public function __construct(array $config = [], ?Container $container = null)
+    {
+        $this->setConfig($config);
+
+        if (!is_null($container)) {
             $this->setContainer($container);
         }
 
-        parent::__construct($routeCollector);
+        if (!self::$instance instanceof static) {
+            self::$instance = $this;
+        }
+
+        $this->routeCollection = new RouteCollection();
 
         $this->setBasePrefix(Request::getFromGlobals()->getRewriteBase());
-
-        add_action(
-            'parse_request',
-            function () {
-                $request = Request::getFromGlobals();
-
-                try {
-                    $response = $this->dispatch($request->psr());
-
-                    if ($response->getStatusCode() !== 100) {
-                        $this->send($response);
-                        exit;
-                    }
-                } catch (Exception $e) {
-                    /* * /
-                    if (wp_using_themes() && $request->isMethod('GET')) {
-                        if (config('routing.remove_trailing_slash', true)) {
-                            $permalinks = get_option('permalink_structure');
-                            if (substr($permalinks, -1) == '/') {
-                                update_option('permalink_structure', rtrim($permalinks, '/'));
-                            }
-
-                            $path = Request::getBaseUrl() . Request::getPathInfo();
-
-                            if (($path != '/') && (substr($path, -1) == '/')) {
-                                $dispatcher = new Dispatcher($this->manager->getData());
-                                $match = $dispatcher->dispatch($method, rtrim($path, '/'));
-
-                                if ($match[0] === FastRoute::FOUND) {
-                                    $redirect_url = rtrim($path, '/');
-                                    $redirect_url .= ($qs = Request::getQueryString()) ? "?{$qs}" : '';
-
-                                    $response = HttpRedirect::createPsr($redirect_url);
-                                    $this->manager->emit($response);
-                                    exit;
-                                }
-                            }
-                        }
-                    }
-                    /**/
-                }
-            },
-            0
-        );
     }
 
     /**
      * @inheritDoc
      */
-    public function dispatch(PsrRequest $request): PsrResponse
+    public static function instance(): RouterInterface
     {
-        if ($this->getStrategy() === null) {
-            $this->setStrategy(new ApplicationStrategy);
+        if (self::$instance instanceof self) {
+            return self::$instance;
         }
-        return parent::dispatch($request);
+        throw new RuntimeException(sprintf('Unavailable %s instance', __CLASS__));
     }
 
     /**
@@ -115,29 +95,81 @@ class Router extends BaseRouter implements RouterInterface
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @return RouteGroup
+     * @inheritDoc
      */
-    public function group(string $prefix, callable $group): BaseRouteGroup
+    public function getFallbackCallable()
     {
-        $group = new RouteGroup($prefix, $group, $this);
+        $callable = $this->fallback;
+
+        if (is_string($callable) && strpos($callable, '::') !== false) {
+            $callable = explode('::', $callable);
+        }
+
+        if (is_array($callable) && isset($callable[0]) && is_object($callable[0])) {
+            $callable = [$callable[0], $callable[1]];
+        }
+
+        if (is_array($callable) && isset($callable[0]) && is_string($callable[0])) {
+            $callable = [$this->resolveFallback($callable[0]), $callable[1]];
+        }
+
+        if (is_string($callable)) {
+            $callable = $this->resolveFallback($callable);
+        }
+
+        if (!is_callable($callable)) {
+            throw new RuntimeException('Could not resolve a callable fallback');
+        }
+        return $callable;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function group(string $prefix, callable $group): RouteGroupInterface
+    {
+        $group = new RouteGroup($prefix, $group, $this->routeCollection);
 
         if ($container = $this->getContainer()) {
             $group->setContainer($container);
         }
 
-        $this->groups[] = $group;
+        $this->routeCollection->addGroup($group);
 
         return $group;
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @return Route
+     * @inheritDoc
      */
-    public function map(string $method, string $path, $handler): BaseRoute
+    public function handleRequest(RequestInterface $request): ResponseInterface
+    {
+        try {
+            if ($this->routeCollection->getStrategy() === null) {
+                $this->routeCollection->setStrategy(new ApplicationStrategy());
+            }
+
+            $psrResponse = $this->routeCollection->dispatch($request->psr());
+
+            return Response::createFromPsr($psrResponse);
+        } catch (BadRouteException $e) {
+            throw new RuntimeException(
+                sprintf('Bad Route declaration thrown exception : [%s]', $e->getMessage())
+            );
+        } catch(Exception $e) {
+            if ($e instanceof NotFoundException) {
+                $fallback = $this->getFallbackCallable();
+
+                return $fallback();
+            }
+            throw new RuntimeException($e->getMessage());
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function map(string $method, string $path, $handler): RouteInterface
     {
         $path = $this->getBasePrefix() . sprintf('/%s', ltrim($path, '/'));
         $route = new Route($method, $path, $handler);
@@ -146,19 +178,35 @@ class Router extends BaseRouter implements RouterInterface
             $route->setContainer($container);
         }
 
-        $this->routes[] = $route;
+        $this->routeCollection->addRoute($route);
 
         return $route;
     }
 
     /**
-     * @param PsrResponse $response
+     * @todo
+     */
+    protected function resolveFallback(string $class)
+    {
+        if (($container = $this->getContainer()) && $container->has($class)) {
+            return $container->get($class);
+        }
+
+        if (class_exists($class)) {
+            return new $class();
+        }
+
+        return $class;
+    }
+
+    /**
+     * @param ResponseInterface $response
      *
      * @return bool
      */
-    public function send(PsrResponse $response): bool
+    public function sendResponse(ResponseInterface $response): bool
     {
-        return (new SapiEmitter())->emit($response);
+        return (new SapiEmitter())->emit($response->psr());
     }
 
     /**
@@ -167,6 +215,18 @@ class Router extends BaseRouter implements RouterInterface
     public function setBasePrefix(string $basePrefix): RouterInterface
     {
         $this->basePrefix = $basePrefix;
+
+        return $this;
+    }
+
+    /**
+     * @param callable|string $fallback
+     *
+     * @return $this
+     */
+    public function setFallback($fallback): RouterInterface
+    {
+        $this->fallback = $fallback;
 
         return $this;
     }

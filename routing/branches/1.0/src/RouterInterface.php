@@ -4,25 +4,22 @@ declare(strict_types=1);
 
 namespace Pollen\Routing;
 
-use League\Route\Middleware\MiddlewareAwareInterface;
-use League\Route\Route as BaseRoute;
-use League\Route\RouteCollectionInterface;
-use League\Route\RouteGroup as BaseRouteGroup;
-use League\Route\Strategy\StrategyAwareInterface;
-use Psr\Http\Message\ResponseInterface as PsrResponse;
-use Psr\Http\Server\RequestHandlerInterface;
+use Pollen\Http\RequestInterface;
+use Pollen\Http\ResponseInterface;
 
 /**
  * @mixin \Pollen\Routing\Concerns\RouteCollectionTrait
  * @mixin \Pollen\Support\Concerns\ContainerAwareTrait
- * @mixin \League\Route\Router
  */
-interface RouterInterface extends
-    MiddlewareAwareInterface,
-    RouteCollectionInterface,
-    StrategyAwareInterface,
-    RequestHandlerInterface
+interface RouterInterface
 {
+    /**
+     * Récupération de l'instance courante.
+     *
+     * @return static
+     */
+    public static function instance(): RouterInterface;
+
     /**
      * Récupération du préfixe de base des chemins de route.
      *
@@ -31,27 +28,43 @@ interface RouterInterface extends
     public function getBasePrefix(): string;
 
     /**
-     * {@inheritDoc}
+     * Déclaration d'un groupe.
      *
-     * @return RouteGroup
+     * @param string $prefix
+     * @param callable $group
+     *
+     * @return RouteGroupInterface
      */
-    public function group(string $prefix, callable $group): BaseRouteGroup;
+    public function group(string $prefix, callable $group): RouteGroupInterface;
 
     /**
-     * {@inheritDoc}
+     * Traitement de la requête.
      *
-     * @return Route
+     * @param RequestInterface $request
+     *
+     * @return ResponseInterface
      */
-    public function map(string $method, string $path, $handler): BaseRoute;
+    public function handleRequest(RequestInterface $request): ResponseInterface;
 
     /**
-     * Envoi de la réponse
+     * Déclaration d'une route.
      *
-     * @param PsrResponse $response
+     * @param string $method
+     * @param string $path
+     * @param string|callable $handler
+     *
+     * @return RouteInterface
+     */
+    public function map(string $method, string $path, $handler): RouteInterface;
+
+    /**
+     * Expédition de la réponse
+     *
+     * @param ResponseInterface $response
      *
      * @return bool
      */
-    public function send(PsrResponse $response): bool;
+    public function sendResponse(ResponseInterface $response): bool;
 
     /**
      * Définition du préfixe de base des chemins de route.

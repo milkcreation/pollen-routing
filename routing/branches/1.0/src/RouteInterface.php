@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Pollen\Routing;
 
 use League\Route\Middleware\MiddlewareAwareInterface;
+use League\Route\Route as BaseRoute;
 use League\Route\RouteConditionHandlerInterface;
+use League\Route\RouteGroup as BaseRouteGroup;
 use League\Route\Strategy\StrategyAwareInterface;
 use Psr\Http\Server\MiddlewareInterface;
 
@@ -16,5 +18,12 @@ use Psr\Http\Server\MiddlewareInterface;
  */
 interface RouteInterface extends MiddlewareInterface, MiddlewareAwareInterface, RouteConditionHandlerInterface, StrategyAwareInterface
 {
-
+    /**
+     * Définition du groupe parent.
+     *
+     * @param BaseRouteGroup $group
+     *
+     * @return BaseRoute
+     */
+    public function setParentGroup(BaseRouteGroup $group): BaseRoute;
 }
