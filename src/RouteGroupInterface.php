@@ -8,7 +8,7 @@ use League\Route\Route;
 
 /**
  * @mixin \League\Route\RouteGroup
- * @mixin RouteCollectionAwareTrait
+ * @mixin RouteCollectorAwareTrait
  * @mixin \Pollen\Support\Concerns\ContainerAwareTrait
  */
 interface RouteGroupInterface

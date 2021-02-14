@@ -8,7 +8,7 @@ use League\Route\Route;
 use InvalidArgumentException;
 use RuntimeException;
 
-trait RouteCollectionAwareTrait
+trait RouteCollectorAwareTrait
 {
     /**
      * Affectation d'un middleware selon un alias de qualification dans le conteneur d'injection de dépendances.
@@ -17,7 +17,7 @@ trait RouteCollectionAwareTrait
      *
      * @return static
      */
-    public function middle(string $alias): RouteCollectionAwareTrait
+    public function middle(string $alias): RouteCollectorAwareTrait
     {
         if (!$this->getContainer()) {
             throw new RuntimeException('Middleware aliased declaration require dependency injection container');
@@ -41,7 +41,7 @@ trait RouteCollectionAwareTrait
      *
      * @return static
      */
-    public function strategy(string $alias): RouteCollectionAwareTrait
+    public function strategy(string $alias): RouteCollectorAwareTrait
     {
         if (!$this->getContainer()) {
             throw new RuntimeException('Strategy aliased declaration require dependency injection container');

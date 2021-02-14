@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Pollen\Routing;
 
 use Exception;
-use FastRoute\RouteCollector;
+use FastRoute\RouteCollector as FastRouteRouteCollector;
 use League\Route\Dispatcher;
-use League\Route\Router as BaseRouteCollection;
+use League\Route\Router as BaseRouteCollector;
+use League\Route\Strategy\OptionsHandlerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class RouteCollection extends BaseRouteCollection implements RouteCollectionInterface
+class RouteCollector extends BaseRouteCollector implements RouteCollectorInterface
 {
     /**
      * @var RouterInterface
@@ -20,9 +21,9 @@ class RouteCollection extends BaseRouteCollection implements RouteCollectionInte
 
     /**
      * @param RouterInterface $router
-     * @param RouteCollector|null $routeCollector
+     * @param FastRouteRouteCollector|null $routeCollector
      */
-    public function __construct(RouterInterface $router, ?RouteCollector $routeCollector = null)
+    public function __construct(RouterInterface $router, ?FastRouteRouteCollector $routeCollector = null)
     {
         $this->router = $router;
 
@@ -32,7 +33,7 @@ class RouteCollection extends BaseRouteCollection implements RouteCollectionInte
     /**
      * @inheritDoc
      */
-    public function addGroup(RouteGroupInterface $group): RouteCollectionInterface
+    public function addGroup(RouteGroupInterface $group): RouteCollectorInterface
     {
         $this->groups[] = $group;
 
@@ -42,11 +43,40 @@ class RouteCollection extends BaseRouteCollection implements RouteCollectionInte
     /**
      * @inheritDoc
      */
-    public function addRoute(RouteInterface $route): RouteCollectionInterface
+    public function addRoute(RouteInterface $route): RouteCollectorInterface
     {
         $this->routes[] = $route;
 
         return $this;
+    }
+
+    protected function buildOptionsRoutes(array $options): void
+    {
+        if (!($this->getStrategy() instanceof OptionsHandlerInterface)) {
+            return;
+        }
+
+        /** @var OptionsHandlerInterface $strategy */
+        $strategy = $this->getStrategy();
+
+        foreach ($options as $identifier => $methods) {
+            [$scheme, $host, $port, $path] = explode(static::IDENTIFIER_SEPARATOR, $identifier);
+            $route = new Route('OPTIONS', $path, $strategy->getOptionsCallable($methods));
+
+            if (!empty($scheme)) {
+                $route->setScheme($scheme);
+            }
+
+            if (!empty($host)) {
+                $route->setHost($host);
+            }
+
+            if (!empty($port)) {
+                $route->setPort($port);
+            }
+
+            $this->routeCollector->addRoute($route->getMethod(), $this->parseRoutePath($route->getPath()), $route);
+        }
     }
 
     /**

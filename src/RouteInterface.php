@@ -9,7 +9,7 @@ use League\Route\RouteGroup as BaseRouteGroup;
 
 /**
  * @mixin \League\Route\Route
- * @mixin RouteCollectionAwareTrait
+ * @mixin RouteCollectorAwareTrait
  * @mixin \Pollen\Support\Concerns\ContainerAwareTrait
  */
 interface RouteInterface extends RouteAwareInterface

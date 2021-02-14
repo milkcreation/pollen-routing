@@ -11,7 +11,7 @@ use League\Route\RouteGroup as BaseRouteGroup;
 class Route extends BaseRoute implements RouteInterface
 {
     use ContainerAwareTrait;
-    use RouteCollectionAwareTrait;
+    use RouteCollectorAwareTrait;
 
     /**
      * @inheritDoc
