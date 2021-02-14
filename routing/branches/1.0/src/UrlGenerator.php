@@ -8,20 +8,50 @@ use FastRoute\BadRouteException;
 use FastRoute\RouteParser\Std as RouteParser;
 use Pollen\Http\Request;
 use Pollen\Http\RequestInterface;
-use Pollen\Http\UrlManipulation;
+use Pollen\Http\UrlManipulator;
 use LogicException;
 
-class UrlGenerator
+class UrlGenerator implements UrlGeneratorInterface
 {
+    /**
+     * @var string|null
+     */
+    protected $basePrefix;
+
+    /**
+     * @var string|null
+     */
+    protected $host;
+
+    /**
+     * @var bool
+     */
+    protected $isAbsolute = false;
+
+    /**
+     * @var string
+     */
+    protected $path = '';
+
+    /**
+     * @var int
+     */
+    protected $port;
+
+    /**
+     * @var string|null http|https
+     */
+    protected $scheme;
+
     /**
      * @var RequestInterface
      */
     protected $request;
 
     /**
-     * @var RouteCollection
+     * @var RouteCollector
      */
-    protected $routeCollection;
+    protected $routeCollector;
 
     /**
      * @var RouterInterface
@@ -29,29 +59,36 @@ class UrlGenerator
     protected $router;
 
     /**
-     * @param RouterInterface $router
+     * @var array
+     */
+    protected $urlPatterns = [
+        '/{(.+?):number}/'        => '{$1:[0-9]+}',
+        '/{(.+?):word}/'          => '{$1:[a-zA-Z]+}',
+        '/{(.+?):alphanum_dash}/' => '{$1:[a-zA-Z0-9-_]+}',
+        '/{(.+?):slug}/'          => '{$1:[a-z0-9-]+}',
+        '/{(.+?):uuid}/'          => '{$1:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}+}'
+    ];
+
+    /**
+     * @param string $path
      * @param \Pollen\Http\RequestInterface|null $request
      */
-    public function __construct(RouterInterface $router, ?RequestInterface $request)
+    public function __construct(string $path, ?RequestInterface $request)
     {
-        $this->router = $router;
-        $this->setRequest($request ?: Request::createFromGlobals());
+        $this->path = $path;
+
+        if ($request !== null) {
+            $this->setRequest($request);
+        }
     }
 
     /**
-     * Récupération de l'url un chemin.
-     *
-     * @param string $path
-     * @param array $args
-     * @param bool $absolute
-     * @param array $context
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function getFromPath(string $path, array $args = [], bool $absolute = false, array $context = []): string
+    public function get(array $args = []): string
     {
         try {
-            $patterns = (new RouteParser())->parse($this->parseRoutePath($path));
+            $patterns = (new RouteParser())->parse($this->parseRoutePath($this->path));
             $patterns = array_reverse($patterns);
 
             $segments = null;
@@ -65,6 +102,7 @@ class UrlGenerator
 
                 foreach ($parts as $matches) {
                     if (!is_array($matches) || count($matches) !== 2) {
+                        $segments[] = $matches;
                         continue;
                     }
                     [$key, $regex] = $matches;
@@ -103,18 +141,18 @@ class UrlGenerator
                 throw $throw ?? new LogicException('Invalid Route Url');
             }
 
-            $url = $this->router->getBasePrefix() . '/' . implode('/', $segments);
+            $url = ($this->basePrefix ? sprintf('/%s', rtrim(ltrim($this->basePrefix))) : ''). implode('', $segments);
             if ($queryArgs) {
-                $url = (string)(new UrlManipulation($url))->with($queryArgs);
+                $url = (string)(new UrlManipulator($url))->with($queryArgs);
             }
 
-            if (!$absolute) {
+            if (!$this->isAbsolute) {
                 return $url;
             }
 
-            $host = $context['host'] ?? $this->getRequest()->getHost();
-            $port = $context['port'] ?? $this->getRequest()->getPort();
-            $scheme = $context['scheme'] ?? $this->getRequest()->getScheme();
+            $host = $this->host ?? $this->getRequest()->getHost();
+            $port = $this->port ?? $this->getRequest()->getPort();
+            $scheme = $this->scheme ?? $this->getRequest()->getScheme();
 
             if ((($port === 80) && ($scheme = 'http')) || (($port === 443) && ($scheme = 'https'))) {
                 $port = '';
@@ -129,52 +167,14 @@ class UrlGenerator
     }
 
     /**
-     * Récupération de l'url d'une route qualifiée.
-     *
-     * @param string $name
-     * @param array $args
-     * @param bool $absolute
-     *
-     * @return string
-     */
-    public function getFromNamedRoute(string $name, array $args = [], bool $absolute = false): ?string
-    {
-        if ($route = $this->router->getNamedRoute($name)) {
-            return $this->getFromRoute($route, $args, $absolute);
-        }
-        return null;
-    }
-
-    /**
-     * Récupération de l'url d'une route.
-     *
-     * @param RouteInterface $route
-     * @param array $args
-     * @param bool $absolute
-     *
-     * @return string
-     */
-    public function getFromRoute(RouteInterface $route, array $args = [], bool $absolute = false): string
-    {
-        return $this->getFromPath(
-            $route->getPath(),
-            $args,
-            $absolute,
-            [
-                'host'   => $route->getHost(),
-                'port'   => $route->getPort(),
-                'scheme' => $route->getScheme(),
-            ]
-        );
-    }
-
-    /**
-     * Récupération de la requête HTTP.
-     *
-     * @return RequestInterface
+     * @inheritDoc
      */
     public function getRequest(): RequestInterface
     {
+        if ($this->request === null) {
+            $this->request = Request::createFromGlobals();
+        }
+
         return $this->request;
     }
 
@@ -185,35 +185,57 @@ class UrlGenerator
      *
      * @return string
      */
-    public function parseRoutePath(string $path): string
+    protected function parseRoutePath(string $path): string
     {
-        $patterns = $this->getRouteCollection()->getUrlPatterns();
+        $patterns = $this->urlPatterns;
 
         return preg_replace(array_keys($patterns), array_values($patterns), $path);
     }
 
     /**
-     * Récupération de l'instance de collection de routes.
-     *
-     * @return RouteCollectionInterface
+     * @inheritDoc
      */
-    public function getRouteCollection(): RouteCollectionInterface
+    public function setAbsoluteEnabled(bool $isAbsolute = false): UrlGeneratorInterface
     {
-        if ($this->routeCollection === null) {
-            $this->routeCollection = $this->router->getRouteCollection();
-        }
+        $this->isAbsolute = $isAbsolute;
 
-        return $this->routeCollection;
+        return $this;
     }
 
     /**
-     * Définition de la requête.
-     *
-     * @param RequestInterface $request
-     *
-     * @return static
+     * @inheritDoc
      */
-    public function setRequest(RequestInterface $request): self
+    public function setBasePrefix(?string $basePrefix = null): UrlGeneratorInterface
+    {
+        $this->basePrefix = $basePrefix;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setHost(?string $host = null): UrlGeneratorInterface
+    {
+        $this->host = $host;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setPort(?int $port = null): UrlGeneratorInterface
+    {
+        $this->port = $port;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setRequest(RequestInterface $request): UrlGeneratorInterface
     {
         $this->request = $request;
 
@@ -221,15 +243,21 @@ class UrlGenerator
     }
 
     /**
-     * Définition de l'instance de collection de routes.
-     *
-     * @param RouteCollectionInterface
-     *
-     * @return static
+     * @inheritDoc
      */
-    public function setRouteCollection(RouteCollectionInterface $routeCollection): self
+    public function setScheme(?string $scheme = null): UrlGeneratorInterface
     {
-        $this->routeCollection = $routeCollection;
+        $this->scheme = $scheme;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setUrlPatterns(array $urlPatterns): UrlGeneratorInterface
+    {
+        $this->urlPatterns = $urlPatterns;
 
         return $this;
     }

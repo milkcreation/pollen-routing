@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Pollen\Routing;
 
-use League\Route\RouteCollectionInterface as BaseRouteCollectionInterface;
+use League\Route\RouteCollectionInterface as BaseRouteCollectorInterface;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
 use Psr\Http\Message\ServerRequestInterface as PsrRequest;
 
 /**
  * @mixin \League\Route\Route
  */
-interface RouteCollectionInterface extends BaseRouteCollectionInterface
+interface RouteCollectorInterface extends BaseRouteCollectorInterface
 {
 
     /**
@@ -19,18 +19,18 @@ interface RouteCollectionInterface extends BaseRouteCollectionInterface
      *
      * @param RouteGroupInterface $group
      *
-     * @return RouteCollectionInterface
+     * @return RouteCollectorInterface
      */
-    public function addGroup(RouteGroupInterface $group): RouteCollectionInterface;
+    public function addGroup(RouteGroupInterface $group): RouteCollectorInterface;
 
     /**
      * Déclaration d'une route.
      *
      * @param RouteInterface $route
      *
-     * @return RouteCollectionInterface
+     * @return RouteCollectorInterface
      */
-    public function addRoute(RouteInterface $route): RouteCollectionInterface;
+    public function addRoute(RouteInterface $route): RouteCollectorInterface;
 
     /**
      * Répartiteur.

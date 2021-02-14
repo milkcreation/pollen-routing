@@ -24,7 +24,7 @@ class Router implements RouterInterface
 {
     use ConfigBagTrait;
     use ContainerAwareTrait;
-    use RouteCollectionAwareTrait;
+    use RouteCollectorAwareTrait;
 
     /**
      * Instance de la classe.
@@ -38,9 +38,9 @@ class Router implements RouterInterface
     private $basePrefixNormalized;
 
     /**
-     * @var string
+     * @var string|null
      */
-    protected $basePrefix = '';
+    protected $basePrefix;
 
     /**
      * @var RouteInterface|null
@@ -53,14 +53,14 @@ class Router implements RouterInterface
     protected $fallback;
 
     /**
-     * @var bool
+     * @var RequestInterface|null
      */
-    protected $handled = false;
+    protected $handleRequest;
 
     /**
-     * @var RouteCollectionInterface
+     * @var RouteCollectorInterface
      */
-    protected $routeCollection;
+    protected $routeCollector;
 
     /**
      * @param array $config
@@ -74,9 +74,19 @@ class Router implements RouterInterface
             $this->setContainer($container);
         }
 
-        $this->routeCollection = new RouteCollection($this);
+        $this->routeCollector = new RouteCollector($this);
 
         $this->setBasePrefix(Request::getFromGlobals()->getRewriteBase());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function addRoute(RouteInterface $route): RouterInterface
+    {
+        $this->routeCollector->addRoute($route);
+
+        return $this;
     }
 
     /**
@@ -86,7 +96,7 @@ class Router implements RouterInterface
     {
         try {
             /** @var MiddlewareInterface|null $middleware */
-            $middleware = $this->getRouteCollection()->shiftMiddleware();
+            $middleware = $this->getRouteCollector()->shiftMiddleware();
         } catch (Exception $e) {
             $middleware = null;
         }
@@ -103,7 +113,7 @@ class Router implements RouterInterface
      */
     public function current(): ?RouteInterface
     {
-        if (!$this->handled) {
+        if ($this->handleRequest === null) {
             throw new RuntimeException('Request must be handled before requesting the current route');
         }
         return $this->currentRoute;
@@ -164,15 +174,46 @@ class Router implements RouterInterface
      */
     public function getNamedRoute(string $name): ?RouteInterface
     {
-        return $this->getRouteCollection()->getRoute($name);
+        return $this->getRouteCollector()->getRoute($name);
     }
 
     /**
      * @inheritDoc
      */
-    public function getRouteCollection(): RouteCollectionInterface
+    public function getNamedRouteUrl(string $name, array $args = [], bool $isAbsolute = false): ?string
     {
-        return $this->routeCollection;
+        if ($route = $this->getNamedRoute($name)) {
+            return $this->getRouteUrl($route, $args, $isAbsolute);
+        }
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRouteCollector(): RouteCollectorInterface
+    {
+        return $this->routeCollector;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRouteUrl(RouteInterface $route, array $args = [], bool $isAbsolute = false): ?string
+    {
+        try {
+            $generator = new UrlGenerator($route->getPath(), $this->handleRequest);
+
+            return $generator
+                ->setAbsoluteEnabled($isAbsolute)
+                ->setHost($route->getHost())
+                ->setPort($route->getPort())
+                ->setScheme($route->getScheme())
+                ->setUrlPatterns($this->getRouteCollector()->getUrlPatterns())
+                ->get($args);
+        } catch(Exception $e) {
+            return null;
+        }
     }
 
     /**
@@ -186,7 +227,7 @@ class Router implements RouterInterface
             $group->setContainer($container);
         }
 
-        $this->routeCollection->addGroup($group);
+        $this->routeCollector->addGroup($group);
 
         return $group;
     }
@@ -202,17 +243,17 @@ class Router implements RouterInterface
     public function handleRequest(RequestInterface $request): ResponseInterface
     {
         try {
-            $this->handled = true;
+            $this->handleRequest = $request;
 
-            if ($this->routeCollection->getStrategy() === null) {
+            if ($this->routeCollector->getStrategy() === null) {
                 $strategy = new ApplicationStrategy();
                 if ($container = $this->getContainer()) {
                     $strategy->setContainer($container);
                 }
-                $this->routeCollection->setStrategy($strategy);
+                $this->routeCollector->setStrategy($strategy);
             }
 
-            $psrResponse = $this->routeCollection->dispatch($request->psr());
+            $psrResponse = $this->routeCollector->dispatch($request->psr());
 
             return Response::createFromPsr($psrResponse);
         } catch (BadRouteException $e) {
@@ -241,7 +282,7 @@ class Router implements RouterInterface
             $route->setContainer($container);
         }
 
-        $this->routeCollection->addRoute($route);
+        $this->addRoute($route);
 
         return $route;
     }
@@ -301,7 +342,7 @@ class Router implements RouterInterface
             }
         }*/
 
-        $collect = $this->getRouteCollection();
+        $collect = $this->getRouteCollector();
 
         foreach ($collect->getMiddlewareStack() as $middleware) {
             $collect->middleware($this->resolveMiddleware($middleware));

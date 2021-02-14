@@ -10,10 +10,19 @@ use Psr\Http\Message\ResponseInterface as PsrResponse;
 
 /**
  * @mixin \Pollen\Support\Concerns\ContainerAwareTrait
- * @mixin RouteCollectionAwareTrait
+ * @mixin RouteCollectorAwareTrait
  */
 interface RouterInterface
 {
+    /**
+     * Déclaration d'une route.
+     *
+     * @param RouteInterface $route
+     *
+     * @return static
+     */
+    public function addRoute(RouteInterface $route): RouterInterface;
+
     /**
      * Pré-traitement de l'envoi de la réponse HTTP.
      *
@@ -52,13 +61,6 @@ interface RouterInterface
     public function getFallbackCallable(): ?callable;
 
     /**
-     * Récupération de l'instance du gestionnaire de la collection de routes.
-     *
-     * @return RouteCollectionInterface
-     */
-    public function getRouteCollection(): RouteCollectionInterface;
-
-    /**
      * Récupération d'une route qualifiée.
      *
      * @param string $name
@@ -66,6 +68,35 @@ interface RouterInterface
      * @return RouteInterface|null
      */
     public function getNamedRoute(string $name): ?RouteInterface;
+
+    /**
+     * Récupération de l'url d'une route qualifiée.
+     *
+     * @param string $name
+     * @param array $args
+     * @param bool $isAbsolute
+     *
+     * @return string
+     */
+    public function getNamedRouteUrl(string $name, array $args = [], bool $isAbsolute = false): ?string;
+
+    /**
+     * Récupération de l'instance du gestionnaire de la collection de routes.
+     *
+     * @return RouteCollectorInterface
+     */
+    public function getRouteCollector(): RouteCollectorInterface;
+
+    /**
+     * Récupération de l'url d'une route.
+     *
+     * @param RouteInterface $route
+     * @param array $args
+     * @param bool $isAbsolute
+     *
+     * @return string
+     */
+    public function getRouteUrl(RouteInterface $route, array $args = [], bool $isAbsolute = false): ?string;
 
     /**
      * Déclaration d'un groupe.

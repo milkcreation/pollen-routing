@@ -37,6 +37,6 @@ interface RouteAwareInterface extends
     public function getStrategy(): ?StrategyInterface;
     public function setStrategy(StrategyInterface $strategy): StrategyAwareInterface;
 
-    public function middle(string $alias): RouteCollectionAwareTrait;
-    public function strategy(string $alias): RouteCollectionAwareTrait;
+    public function middle(string $alias): RouteCollectorAwareTrait;
+    public function strategy(string $alias): RouteCollectorAwareTrait;
 }

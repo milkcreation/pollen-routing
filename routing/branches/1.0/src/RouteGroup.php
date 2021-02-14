@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace Pollen\Routing;
 
 use League\Route\Route;
-use League\Route\RouteCollectionTrait;
 use Pollen\Support\Concerns\ContainerAwareTrait;
 use League\Route\RouteGroup as BaseRouteGroup;
 
 class RouteGroup extends BaseRouteGroup implements RouteGroupInterface
 {
     use ContainerAwareTrait;
-    use RouteCollectionAwareTrait;
+    use RouteCollectorAwareTrait;
 
     /**
      * @var RouterInterface
@@ -28,7 +27,7 @@ class RouteGroup extends BaseRouteGroup implements RouteGroupInterface
     {
         $this->router = $router;
 
-        parent::__construct($prefix, $callback, $router->getRouteCollection());
+        parent::__construct($prefix, $callback, $router->getRouteCollector());
     }
 
     /**
