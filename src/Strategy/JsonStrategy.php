@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pollen\Routing\Strategy;
 
+use Exception;
 use Pollen\Http\Response;
 use Pollen\Http\ResponseInterface;
 use League\Route\Strategy\JsonStrategy as BaseJsonStrategy;
@@ -24,15 +25,22 @@ class JsonStrategy extends BaseJsonStrategy
         $controller = $route->getCallable($this->getContainer());
 
         $args = array_values($route->getVars());
-        $args[] = $request;
         $response = $controller(...$args);
 
         if ($response instanceof ResponseInterface) {
             $response = $response->psr();
         } elseif (!$response instanceof PsrResponse) {
-            $response = $this->isJsonSerializable($response)
-                ? (new Response(json_encode($response)))->psr() : (new Response())->psr();
+            if ($this->isJsonSerializable($response)) {
+                try {
+                    $response = (new Response(json_encode($response, JSON_THROW_ON_ERROR)))->psr();
+                } catch (Exception $e) {
+                    (new Response($e->getMessage(), 500))->psr();
+                }
+            } else {
+                $response = (new Response('', 404))->psr();
+            }
         }
+
         return $this->decorateResponse($response);
     }
 }

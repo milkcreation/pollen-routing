@@ -4,19 +4,15 @@ declare(strict_types=1);
 
 namespace Pollen\Routing;
 
-use League\Route\Middleware\MiddlewareAwareInterface;
 use League\Route\Route as BaseRoute;
-use League\Route\RouteConditionHandlerInterface;
 use League\Route\RouteGroup as BaseRouteGroup;
-use League\Route\Strategy\StrategyAwareInterface;
-use Psr\Http\Server\MiddlewareInterface;
 
 /**
  * @mixin \League\Route\Route
- * @mixin \Pollen\Support\Concerns\ContainerAwareTrait;
- * @mixin \Pollen\Routing\Concerns\StrategyAwareTrait
+ * @mixin RouteCollectionAwareTrait
+ * @mixin \Pollen\Support\Concerns\ContainerAwareTrait
  */
-interface RouteInterface extends MiddlewareInterface, MiddlewareAwareInterface, RouteConditionHandlerInterface, StrategyAwareInterface
+interface RouteInterface extends RouteAwareInterface
 {
     /**
      * Définition du groupe parent.

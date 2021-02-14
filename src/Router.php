@@ -6,24 +6,25 @@ namespace Pollen\Routing;
 
 use Exception;
 use FastRoute\BadRouteException;
+use InvalidArgumentException;
 use League\Route\Http\Exception\NotFoundException;
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Pollen\Http\Request;
 use Pollen\Http\RequestInterface;
 use Pollen\Http\Response;
 use Pollen\Http\ResponseInterface;
-use Pollen\Routing\Concerns\RouteCollectionTrait;
 use Pollen\Routing\Strategy\ApplicationStrategy;
 use Pollen\Support\Concerns\ConfigBagTrait;
 use Pollen\Support\Concerns\ContainerAwareTrait;
 use Psr\Container\ContainerInterface as Container;
+use Psr\Http\Message\ResponseInterface as PsrResponse;
 use RuntimeException;
 
 class Router implements RouterInterface
 {
     use ConfigBagTrait;
     use ContainerAwareTrait;
-    use RouteCollectionTrait;
+    use RouteCollectionAwareTrait;
 
     /**
      * Instance de la classe.
@@ -42,9 +43,19 @@ class Router implements RouterInterface
     protected $basePrefix = '';
 
     /**
+     * @var RouteInterface|null
+     */
+    protected $currentRoute;
+
+    /**
      * @var callable
      */
     protected $fallback;
+
+    /**
+     * @var bool
+     */
+    protected $handled = false;
 
     /**
      * @var RouteCollectionInterface
@@ -63,11 +74,7 @@ class Router implements RouterInterface
             $this->setContainer($container);
         }
 
-        if (!self::$instance instanceof static) {
-            self::$instance = $this;
-        }
-
-        $this->routeCollection = new RouteCollection();
+        $this->routeCollection = new RouteCollection($this);
 
         $this->setBasePrefix(Request::getFromGlobals()->getRewriteBase());
     }
@@ -75,12 +82,39 @@ class Router implements RouterInterface
     /**
      * @inheritDoc
      */
-    public static function instance(): RouterInterface
+    public function beforeSendResponse(PsrResponse $response): PsrResponse
     {
-        if (self::$instance instanceof self) {
-            return self::$instance;
+        try {
+            /** @var MiddlewareInterface|null $middleware */
+            $middleware = $this->getRouteCollection()->shiftMiddleware();
+        } catch (Exception $e) {
+            $middleware = null;
         }
-        throw new RuntimeException(sprintf('Unavailable %s instance', __CLASS__));
+
+        if (is_null($middleware)) {
+            return $response;
+        }
+
+        return $middleware->beforeSend($response, $this) ?: $response;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function current(): ?RouteInterface
+    {
+        if (!$this->handled) {
+            throw new RuntimeException('Request must be handled before requesting the current route');
+        }
+        return $this->currentRoute;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function currentRouteName(): ?string
+    {
+        return $this->currentRoute ? $this->currentRoute->getName() : null;
     }
 
     /**
@@ -97,9 +131,11 @@ class Router implements RouterInterface
     /**
      * @inheritDoc
      */
-    public function getFallbackCallable()
+    public function getFallbackCallable(): ?callable
     {
-        $callable = $this->fallback;
+        if (!$callable = $this->fallback) {
+            return null;
+        }
 
         if (is_string($callable) && strpos($callable, '::') !== false) {
             $callable = explode('::', $callable);
@@ -110,15 +146,15 @@ class Router implements RouterInterface
         }
 
         if (is_array($callable) && isset($callable[0]) && is_string($callable[0])) {
-            $callable = [$this->resolveFallback($callable[0]), $callable[1]];
+            $callable = [$this->resolveFallbackClass($callable[0]), $callable[1]];
         }
 
         if (is_string($callable)) {
-            $callable = $this->resolveFallback($callable);
+            $callable = $this->resolveFallbackClass($callable);
         }
 
         if (!is_callable($callable)) {
-            throw new RuntimeException('Could not resolve a callable fallback');
+            throw new RuntimeException('Could not resolve a callable Route Fallback');
         }
         return $callable;
     }
@@ -126,9 +162,25 @@ class Router implements RouterInterface
     /**
      * @inheritDoc
      */
+    public function getNamedRoute(string $name): ?RouteInterface
+    {
+        return $this->getRouteCollection()->getRoute($name);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRouteCollection(): RouteCollectionInterface
+    {
+        return $this->routeCollection;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function group(string $prefix, callable $group): RouteGroupInterface
     {
-        $group = new RouteGroup($prefix, $group, $this->routeCollection);
+        $group = new RouteGroup($prefix, $group, $this);
 
         if ($container = $this->getContainer()) {
             $group->setContainer($container);
@@ -139,14 +191,25 @@ class Router implements RouterInterface
         return $group;
     }
 
+    public function head(string $path, $handler): RouteInterface
+    {
+        return $this->map('HEAD', $path, $handler);
+    }
+
     /**
      * @inheritDoc
      */
     public function handleRequest(RequestInterface $request): ResponseInterface
     {
         try {
+            $this->handled = true;
+
             if ($this->routeCollection->getStrategy() === null) {
-                $this->routeCollection->setStrategy(new ApplicationStrategy());
+                $strategy = new ApplicationStrategy();
+                if ($container = $this->getContainer()) {
+                    $strategy->setContainer($container);
+                }
+                $this->routeCollection->setStrategy($strategy);
             }
 
             $psrResponse = $this->routeCollection->dispatch($request->psr());
@@ -156,8 +219,8 @@ class Router implements RouterInterface
             throw new RuntimeException(
                 sprintf('Bad Route declaration thrown exception : [%s]', $e->getMessage())
             );
-        } catch(Exception $e) {
-            if ($e instanceof NotFoundException) {
+        } catch (Exception $e) {
+            if ($e instanceof NotFoundException && ($fallback = $this->getFallbackCallable())) {
                 $fallback = $this->getFallbackCallable();
 
                 return $fallback();
@@ -184,9 +247,13 @@ class Router implements RouterInterface
     }
 
     /**
-     * @todo
+     * Récupération de la classe de rappel.
+     *
+     * @param string $class
+     *
+     * @return object
      */
-    protected function resolveFallback(string $class)
+    protected function resolveFallbackClass(string $class): object
     {
         if (($container = $this->getContainer()) && $container->has($class)) {
             return $container->get($class);
@@ -195,8 +262,26 @@ class Router implements RouterInterface
         if (class_exists($class)) {
             return new $class();
         }
+        throw new RuntimeException('Route Fallback Class unresolvable');
+    }
 
-        return $class;
+    protected function resolveMiddleware($middleware): MiddlewareInterface
+    {
+        $container = $this->getContainer();
+
+        if ($container === null && is_string($middleware) && class_exists($middleware)) {
+            $middleware = new $middleware();
+        }
+
+        if ($container !== null && is_string($middleware) && $container->has($middleware)) {
+            $middleware = $container->get($middleware);
+        }
+
+        if ($middleware instanceof MiddlewareInterface) {
+            return $middleware;
+        }
+
+        throw new InvalidArgumentException(sprintf('Could not resolve middleware class: %s', $middleware));
     }
 
     /**
@@ -206,7 +291,37 @@ class Router implements RouterInterface
      */
     public function sendResponse(ResponseInterface $response): bool
     {
-        return (new SapiEmitter())->emit($response->psr());
+        /*if ($dispatched = $this->router->getResponse()) {
+            $additionnalHeaders = $dispatched->getHeaders() ?: [];
+        }
+
+        if (!empty($additionnalHeaders)) {
+            foreach ($additionnalHeaders as $name => $value) {
+                $psrResponse->withAddedHeader($name, $value);
+            }
+        }*/
+
+        $collect = $this->getRouteCollection();
+
+        foreach ($collect->getMiddlewareStack() as $middleware) {
+            $collect->middleware($this->resolveMiddleware($middleware));
+        }
+
+        if ($route = $this->current()) {
+            if ($group = $route->getParentGroup()) {
+                foreach ($group->getMiddlewareStack() as $middleware) {
+                    $collect->middleware($this->resolveMiddleware($middleware));
+                }
+            }
+
+            foreach ($route->getMiddlewareStack() as $middleware) {
+                $collect->middleware($this->resolveMiddleware($middleware));
+            }
+        }
+
+        $response = $this->beforeSendResponse($response->psr());
+
+        return (new SapiEmitter())->emit($response);
     }
 
     /**
@@ -215,6 +330,16 @@ class Router implements RouterInterface
     public function setBasePrefix(string $basePrefix): RouterInterface
     {
         $this->basePrefix = $basePrefix;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCurrentRoute(RouteInterface $route): RouterInterface
+    {
+        $this->currentRoute = $route;
 
         return $this;
     }
@@ -229,5 +354,13 @@ class Router implements RouterInterface
         $this->fallback = $fallback;
 
         return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function terminateEvent(RequestInterface $request, ResponseInterface $response): void
+    {
+        exit;
     }
 }
