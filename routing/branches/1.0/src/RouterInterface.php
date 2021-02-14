@@ -6,19 +6,36 @@ namespace Pollen\Routing;
 
 use Pollen\Http\RequestInterface;
 use Pollen\Http\ResponseInterface;
+use Psr\Http\Message\ResponseInterface as PsrResponse;
 
 /**
- * @mixin \Pollen\Routing\Concerns\RouteCollectionTrait
  * @mixin \Pollen\Support\Concerns\ContainerAwareTrait
+ * @mixin RouteCollectionAwareTrait
  */
 interface RouterInterface
 {
     /**
-     * Récupération de l'instance courante.
+     * Pré-traitement de l'envoi de la réponse HTTP.
      *
-     * @return static
+     * @param PsrResponse $response
+     *
+     * @return PsrResponse
      */
-    public static function instance(): RouterInterface;
+    public function beforeSendResponse(PsrResponse $response): PsrResponse;
+
+    /**
+     * Récupération de la route courante.
+     *
+     * @return RouteInterface|null
+     */
+    public function current(): ?RouteInterface;
+
+    /**
+     * Récupération de l'intitulé d'une route qualifiée.
+     *
+     * @return string
+     */
+    public function currentRouteName(): ?string;
 
     /**
      * Récupération du préfixe de base des chemins de route.
@@ -26,6 +43,29 @@ interface RouterInterface
      * @return string
      */
     public function getBasePrefix(): string;
+
+    /**
+     * Récupération de la fonction de rappel.
+     *
+     * @return callable|null
+     */
+    public function getFallbackCallable(): ?callable;
+
+    /**
+     * Récupération de l'instance du gestionnaire de la collection de routes.
+     *
+     * @return RouteCollectionInterface
+     */
+    public function getRouteCollection(): RouteCollectionInterface;
+
+    /**
+     * Récupération d'une route qualifiée.
+     *
+     * @param string $name
+     *
+     * @return RouteInterface|null
+     */
+    public function getNamedRoute(string $name): ?RouteInterface;
 
     /**
      * Déclaration d'un groupe.
@@ -74,4 +114,23 @@ interface RouterInterface
      * @return static
      */
     public function setBasePrefix(string $basePrefix): RouterInterface;
+
+    /**
+     * Définition de la route courante.
+     *
+     * @param RouteInterface $route
+     *
+     * @return RouterInterface
+     */
+    public function setCurrentRoute(RouteInterface $route): RouterInterface;
+
+    /**
+     * Termine le cycle de la requête et de la réponse HTTP.
+     *
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     *
+     * @return void
+     */
+    public function terminateEvent(RequestInterface $request, ResponseInterface $response): void;
 }

@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Pollen\Routing;
 
 use Pollen\Support\Concerns\ContainerAwareTrait;
+use Pollen\Http\BinaryFileResponse;
+use Pollen\Http\BinaryFileResponseInterface;
+use Pollen\Http\JsonResponse;
+use Pollen\Http\JsonResponseInterface;
 use Pollen\Http\RedirectResponse;
 use Pollen\Http\RedirectResponseInterface;
 use Pollen\Http\Request;
@@ -16,8 +20,9 @@ use Pollen\View\ViewEngine;
 use Pollen\View\ViewEngineInterface;
 use Psr\Container\ContainerInterface as Container;
 use RuntimeException;
+use SplFileInfo;
 
-class BaseController
+abstract class BaseController
 {
     use ContainerAwareTrait;
     use ParamsBagTrait;
@@ -67,7 +72,7 @@ class BaseController
      *
      * @return ViewEngineInterface
      */
-    public function getViewEngine(): ViewEngineInterface
+    protected function getViewEngine(): ViewEngineInterface
     {
         if ($this->viewEngine === null) {
             if ((!$dir = $this->viewEngineDirectory()) || !is_dir($dir)) {
@@ -90,9 +95,40 @@ class BaseController
      *
      * @return bool
      */
-    public function hasView(string $view): bool
+    protected function hasView(string $view): bool
     {
         return $this->getViewEngine()->exists($view);
+    }
+
+    /**
+     * Retourne la réponse de téléchargement ou d'affichage d'un fichier.
+     *
+     * @param SplFileInfo|string $file
+     * @param string|null
+     * @param string $disposition attachment|inline
+     *
+     * @return BinaryFileResponseInterface
+     */
+    protected function file($file, string $fileName = null, string $disposition = 'attachment'): BinaryFileResponseInterface
+    {
+        $response = new BinaryFileResponse($file);
+        $response->setContentDisposition($disposition, $fileName??$response->getFile()->getFilename());
+
+        return $response;
+    }
+
+    /**
+     * Retourne la réponse JSON HTTP.
+     *
+     * @param string|array|object|null $data
+     * @param int $status
+     * @param array $headers
+     *
+     * @return JsonResponseInterface
+     */
+    protected function json($data = null, int $status = 200, array $headers = []): JsonResponseInterface
+    {
+        return new JsonResponse($data, $status, $headers);
     }
 
     /**
@@ -104,7 +140,7 @@ class BaseController
      *
      * @return RedirectResponseInterface
      */
-    public function redirect(string $path = '/', int $status = 302, array $headers = []): RedirectResponseInterface
+    protected function redirect(string $path = '/', int $status = 302, array $headers = []): RedirectResponseInterface
     {
         return new RedirectResponse($path, $status, $headers);
     }
@@ -117,7 +153,7 @@ class BaseController
      *
      * @return RedirectResponseInterface
      */
-    public function referer(int $status = 302, array $headers = []): RedirectResponseInterface
+    protected function referer(int $status = 302, array $headers = []): RedirectResponseInterface
     {
         return $this->redirect(Request::getFromGlobals()->headers->get('referer'), $status, $headers);
     }
@@ -130,13 +166,13 @@ class BaseController
      *
      * @return string
      */
-    public function render(string $view, array $data = []): string
+    protected function render(string $view, array $data = []): string
     {
         return $this->getViewEngine()->render($view, $data);
     }
 
     /**
-     * Récupération de la reponse HTTP.
+     * Retourne la réponse HTTP.
      *
      * @param string $content .
      * @param int $status
@@ -144,7 +180,7 @@ class BaseController
      *
      * @return ResponseInterface
      */
-    public function response($content = '', int $status = 200, array $headers = []): ResponseInterface
+    protected function response($content = '', int $status = 200, array $headers = []): ResponseInterface
     {
         return new Response($content, $status, $headers);
     }
@@ -158,12 +194,16 @@ class BaseController
      * @param array $headers Liste des entêtes complémentaires associées à la redirection.
      *
      * @return RedirectResponse
-     * /
-     * public function route(string $name, array $params = [], int $status = 302, array $headers = []): RedirectResponse
-     * {
-     * return Redirect::route($name, $params, $status, $headers);
-     * }
-     * /**/
+     *
+     * @todo
+     */
+     public function route(string $name, array $params = [], int $status = 302, array $headers = []): RedirectResponse
+     {
+         if ($this->containerHas(RouterInterface::class)) {
+            $router = $this->containerGet(RouterInterface::class);
+         }
+         //return Redirect::route($name, $params, $status, $headers);
+     }
 
     /**
      * Définition de l'activation du mode de deboguage.
@@ -220,7 +260,7 @@ class BaseController
      *
      * @return ResponseInterface
      */
-    public function view(string $view, array $data = []): ResponseInterface
+    protected function view(string $view, array $data = []): ResponseInterface
     {
         return $this->response($this->render($view, $data));
     }
@@ -230,8 +270,5 @@ class BaseController
      *
      * @return string
      */
-    public function viewEngineDirectory(): string
-    {
-        return get_template_directory();
-    }
+    abstract protected function viewEngineDirectory(): string;
 }

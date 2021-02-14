@@ -24,7 +24,6 @@ class ApplicationStrategy extends BaseApplicationStrategy
         $controller = $route->getCallable($this->getContainer());
 
         $args = array_values($route->getVars());
-        $args[] = $request;
         $response = $controller(...$args);
 
         if ($response instanceof ResponseInterface) {
@@ -32,6 +31,7 @@ class ApplicationStrategy extends BaseApplicationStrategy
         } elseif (!$response instanceof PsrResponse) {
             $response = is_string($response) ? (new Response($response))->psr() : (new Response())->psr();
         }
+
         return $this->decorateResponse($response);
     }
 }
