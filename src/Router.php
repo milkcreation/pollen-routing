@@ -27,12 +27,6 @@ class Router implements RouterInterface
     use RouteCollectorAwareTrait;
 
     /**
-     * Instance de la classe.
-     * @var static|null
-     */
-    private static $instance;
-
-    /**
      * @var string|null
      */
     private $basePrefixNormalized;
