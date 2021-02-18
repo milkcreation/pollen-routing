@@ -23,7 +23,7 @@ use Pollen\Routing\Router;
 // Create the Request object
 $request = Request::createFromGlobals();
 
-// Instantiate the router
+// Router instantiation
 $router = new Router();
 
 // Map a route

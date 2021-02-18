@@ -7,12 +7,13 @@ namespace Pollen\Routing;
 use Pollen\Http\RequestInterface;
 use Pollen\Http\ResponseInterface;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
+use League\Route\Middleware\MiddlewareAwareInterface;
 
 /**
  * @mixin \Pollen\Support\Concerns\ContainerAwareTrait
  * @mixin RouteCollectorAwareTrait
  */
-interface RouterInterface
+interface RouterInterface extends MiddlewareAwareInterface
 {
     /**
      * Déclaration d'une route.

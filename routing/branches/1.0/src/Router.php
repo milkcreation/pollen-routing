@@ -9,6 +9,7 @@ use FastRoute\BadRouteException;
 use InvalidArgumentException;
 use League\Route\Http\Exception\NotFoundException;
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
+use League\Route\Middleware\MiddlewareAwareTrait;
 use Pollen\Http\Request;
 use Pollen\Http\RequestInterface;
 use Pollen\Http\Response;
@@ -18,12 +19,14 @@ use Pollen\Support\Concerns\ConfigBagTrait;
 use Pollen\Support\Concerns\ContainerAwareTrait;
 use Psr\Container\ContainerInterface as Container;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
+use Psr\Http\Server\MiddlewareInterface;
 use RuntimeException;
 
 class Router implements RouterInterface
 {
     use ConfigBagTrait;
     use ContainerAwareTrait;
+    use MiddlewareAwareTrait;
     use RouteCollectorAwareTrait;
 
     /**
@@ -95,7 +98,7 @@ class Router implements RouterInterface
             $middleware = null;
         }
 
-        if (is_null($middleware)) {
+        if ($middleware === null) {
             return $response;
         }
 
@@ -326,19 +329,9 @@ class Router implements RouterInterface
      */
     public function sendResponse(ResponseInterface $response): bool
     {
-        /*if ($dispatched = $this->router->getResponse()) {
-            $additionnalHeaders = $dispatched->getHeaders() ?: [];
-        }
-
-        if (!empty($additionnalHeaders)) {
-            foreach ($additionnalHeaders as $name => $value) {
-                $psrResponse->withAddedHeader($name, $value);
-            }
-        }*/
-
         $collect = $this->getRouteCollector();
 
-        foreach ($collect->getMiddlewareStack() as $middleware) {
+        foreach ($this->getMiddlewareStack() as $middleware) {
             $collect->middleware($this->resolveMiddleware($middleware));
         }
 
