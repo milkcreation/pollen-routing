@@ -23,7 +23,7 @@ class ApplicationStrategy extends BaseApplicationStrategy
     {
         $controller = $route->getCallable($this->getContainer());
 
-        $args = array_values($route->getVars());
+        $args = array_merge(array_values($route->getVars()), [$request]);
         $response = $controller(...$args);
 
         if ($response instanceof ResponseInterface) {

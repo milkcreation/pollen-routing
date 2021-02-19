@@ -12,6 +12,7 @@ use Pollen\Http\JsonResponseInterface;
 use Pollen\Http\RedirectResponse;
 use Pollen\Http\RedirectResponseInterface;
 use Pollen\Http\Request;
+use Pollen\Http\RequestInterface;
 use Pollen\Http\Response;
 use Pollen\Http\ResponseInterface;
 use Pollen\Support\Concerns\ParamsBagTrait;
@@ -28,16 +29,22 @@ abstract class BaseController
     use ParamsBagTrait;
 
     /**
+     * Indicateur d'activation du mode de débogage.
+     * @var bool|null
+     */
+    protected $debug;
+
+    /**
+     * Instance de la requête HTTP courante
+     * @var RequestInterface
+     */
+    protected $request;
+
+    /**
      * Instance du moteur de gabarits d'affichage.
      * @var
      */
     protected $viewEngine;
-
-    /**
-     * Indicateur d'activation du mode de déboguage.
-     * @var bool|null
-     */
-    protected $debug;
 
     /**
      * @param Container|null $container
@@ -58,7 +65,7 @@ abstract class BaseController
     public function boot(): void { }
 
     /**
-     * Vérification d'activation du mode de deboguage.
+     * Vérification d'activation du mode de débogage.
      *
      * @return bool
      */
@@ -89,7 +96,7 @@ abstract class BaseController
     }
 
     /**
-     * Vérification d'existance d'un gabarit d'affichage.
+     * Vérification d'existence d'un gabarit d'affichage.
      *
      * @param string $view Nom de qualification du gabarit.
      *
@@ -155,7 +162,20 @@ abstract class BaseController
      */
     protected function referer(int $status = 302, array $headers = []): RedirectResponseInterface
     {
-        return $this->redirect(Request::getFromGlobals()->headers->get('referer'), $status, $headers);
+        return $this->redirect($this->request()->headers->get('referer'), $status, $headers);
+    }
+
+    /**
+     * Récupération de la requête HTTP courante
+     *
+     * @return RequestInterface
+     */
+    public function request(): RequestInterface
+    {
+        if ($this->request === null) {
+            $this->request = Request::getFromGlobals();
+        }
+        return $this->request;
     }
 
     /**
@@ -194,19 +214,21 @@ abstract class BaseController
      * @param array $headers Liste des entêtes complémentaires associées à la redirection.
      *
      * @return RedirectResponse
-     *
-     * @todo
      */
      public function route(string $name, array $params = [], int $status = 302, array $headers = []): RedirectResponse
      {
          if ($this->containerHas(RouterInterface::class)) {
+             /** @var RouterInterface $router */
             $router = $this->containerGet(RouterInterface::class);
+
+             $url = $router->getNamedRouteUrl($name, $params);
+             return new RedirectResponse($url, $status, $headers);
          }
-         //return Redirect::route($name, $params, $status, $headers);
+         throw new RuntimeException('Any router are available');
      }
 
     /**
-     * Définition de l'activation du mode de deboguage.
+     * Définition de l'activation du mode de débogage.
      *
      * @param bool $debug
      *
@@ -253,7 +275,7 @@ abstract class BaseController
     }
 
     /**
-     * Génération de la reponse HTTP associé à l'affichage d'un gabarit.
+     * Génération de la réponse HTTP associé à l'affichage d'un gabarit.
      *
      * @param string $view Nom de qualification du gabarit.
      * @param array $data Liste des variables passées en argument.
