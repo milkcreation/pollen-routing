@@ -10,6 +10,7 @@ use Psr\Http\Message\ResponseInterface as PsrResponse;
 use League\Route\Middleware\MiddlewareAwareInterface;
 
 /**
+ * @mixin \Pollen\Support\Concerns\ConfigBagTrait
  * @mixin \Pollen\Support\Concerns\ContainerAwareTrait
  * @mixin RouteCollectorAwareTrait
  */
