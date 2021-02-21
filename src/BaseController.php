@@ -116,10 +116,13 @@ abstract class BaseController
      *
      * @return BinaryFileResponseInterface
      */
-    protected function file($file, string $fileName = null, string $disposition = 'attachment'): BinaryFileResponseInterface
-    {
+    protected function file(
+        $file,
+        string $fileName = null,
+        string $disposition = 'attachment'
+    ): BinaryFileResponseInterface {
         $response = new BinaryFileResponse($file);
-        $response->setContentDisposition($disposition, $fileName??$response->getFile()->getFilename());
+        $response->setContentDisposition($disposition, $fileName ?? $response->getFile()->getFilename());
 
         return $response;
     }
@@ -215,17 +218,17 @@ abstract class BaseController
      *
      * @return RedirectResponse
      */
-     public function route(string $name, array $params = [], int $status = 302, array $headers = []): RedirectResponse
-     {
-         if ($this->containerHas(RouterInterface::class)) {
-             /** @var RouterInterface $router */
+    public function route(string $name, array $params = [], int $status = 302, array $headers = []): RedirectResponse
+    {
+        if ($this->containerHas(RouterInterface::class)) {
+            /** @var RouterInterface $router */
             $router = $this->containerGet(RouterInterface::class);
 
-             $url = $router->getNamedRouteUrl($name, $params);
-             return new RedirectResponse($url, $status, $headers);
-         }
-         throw new RuntimeException('Any router are available');
-     }
+            $url = $router->getNamedRouteUrl($name, $params);
+            return new RedirectResponse($url, $status, $headers);
+        }
+        throw new RuntimeException('Any router are available');
+    }
 
     /**
      * Définition de l'activation du mode de débogage.
