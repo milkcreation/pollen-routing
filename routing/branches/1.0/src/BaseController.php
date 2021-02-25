@@ -15,7 +15,7 @@ use Pollen\Http\Request;
 use Pollen\Http\RequestInterface;
 use Pollen\Http\Response;
 use Pollen\Http\ResponseInterface;
-use Pollen\Support\Concerns\ParamsBagTrait;
+use Pollen\Support\Concerns\ParamsBagAwareTrait;
 use Pollen\Support\Env;
 use Pollen\View\ViewEngine;
 use Pollen\View\ViewEngineInterface;
@@ -26,7 +26,7 @@ use SplFileInfo;
 abstract class BaseController
 {
     use ContainerAwareTrait;
-    use ParamsBagTrait;
+    use ParamsBagAwareTrait;
 
     /**
      * Indicateur d'activation du mode de débogage.
