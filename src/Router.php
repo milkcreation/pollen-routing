@@ -15,7 +15,7 @@ use Pollen\Http\RequestInterface;
 use Pollen\Http\Response;
 use Pollen\Http\ResponseInterface;
 use Pollen\Routing\Strategy\ApplicationStrategy;
-use Pollen\Support\Concerns\ConfigBagTrait;
+use Pollen\Support\Concerns\ConfigBagAwareTrait;
 use Pollen\Support\Concerns\ContainerAwareTrait;
 use Psr\Container\ContainerInterface as Container;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
@@ -24,7 +24,7 @@ use RuntimeException;
 
 class Router implements RouterInterface
 {
-    use ConfigBagTrait;
+    use ConfigBagAwareTrait;
     use ContainerAwareTrait;
     use MiddlewareAwareTrait;
     use RouteCollectorAwareTrait;
