@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace Pollen\Routing;
 
-use Pollen\Support\Concerns\ContainerAwareTrait;
 use Pollen\Http\BinaryFileResponse;
 use Pollen\Http\BinaryFileResponseInterface;
 use Pollen\Http\JsonResponse;
 use Pollen\Http\JsonResponseInterface;
 use Pollen\Http\RedirectResponse;
 use Pollen\Http\RedirectResponseInterface;
-use Pollen\Http\Request;
-use Pollen\Http\RequestInterface;
 use Pollen\Http\Response;
 use Pollen\Http\ResponseInterface;
 use Pollen\Support\Concerns\ParamsBagAwareTrait;
+use Pollen\Support\Proxy\ContainerProxy;
+use Pollen\Support\Proxy\HttpRequestProxy;
 use Pollen\Support\Env;
 use Pollen\View\ViewEngine;
 use Pollen\View\ViewEngineInterface;
@@ -25,20 +24,15 @@ use SplFileInfo;
 
 abstract class BaseController
 {
-    use ContainerAwareTrait;
+    use ContainerProxy;
     use ParamsBagAwareTrait;
+    use HttpRequestProxy;
 
     /**
      * Indicateur d'activation du mode de débogage.
      * @var bool|null
      */
     protected $debug;
-
-    /**
-     * Instance de la requête HTTP courante
-     * @var RequestInterface
-     */
-    protected $request;
 
     /**
      * Instance du moteur de gabarits d'affichage.
@@ -165,20 +159,7 @@ abstract class BaseController
      */
     protected function referer(int $status = 302, array $headers = []): RedirectResponseInterface
     {
-        return $this->redirect($this->request()->headers->get('referer'), $status, $headers);
-    }
-
-    /**
-     * Récupération de la requête HTTP courante
-     *
-     * @return RequestInterface
-     */
-    public function request(): RequestInterface
-    {
-        if ($this->request === null) {
-            $this->request = Request::getFromGlobals();
-        }
-        return $this->request;
+        return $this->redirect($this->httpRequest()->headers->get('referer'), $status, $headers);
     }
 
     /**

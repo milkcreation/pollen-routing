@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Pollen\Routing;
 
 use League\Route\Route;
+use Pollen\Support\Proxy\ContainerProxyInterface;
 
 /**
  * @mixin \League\Route\RouteGroup
  * @mixin RouteCollectorAwareTrait
- * @mixin \Pollen\Support\Concerns\ContainerAwareTrait
  */
-interface RouteGroupInterface
+interface RouteGroupInterface extends ContainerProxyInterface
 {
     /**
      * @param string $method

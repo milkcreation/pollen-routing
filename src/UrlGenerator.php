@@ -6,13 +6,15 @@ namespace Pollen\Routing;
 
 use FastRoute\BadRouteException;
 use FastRoute\RouteParser\Std as RouteParser;
-use Pollen\Http\Request;
 use Pollen\Http\RequestInterface;
 use Pollen\Http\UrlManipulator;
+use Pollen\Support\Proxy\HttpRequestProxy;
 use LogicException;
 
 class UrlGenerator implements UrlGeneratorInterface
 {
+    use HttpRequestProxy;
+
     /**
      * @var string|null
      */
@@ -78,7 +80,7 @@ class UrlGenerator implements UrlGeneratorInterface
         $this->path = $path;
 
         if ($request !== null) {
-            $this->setRequest($request);
+            $this->setHttpRequest($request);
         }
     }
 
@@ -150,9 +152,9 @@ class UrlGenerator implements UrlGeneratorInterface
                 return $url;
             }
 
-            $host = $this->host ?? $this->getRequest()->getHost();
-            $port = $this->port ?? $this->getRequest()->getPort();
-            $scheme = $this->scheme ?? $this->getRequest()->getScheme();
+            $host = $this->host ?? $this->httpRequest()->getHost();
+            $port = $this->port ?? $this->httpRequest()->getPort();
+            $scheme = $this->scheme ?? $this->httpRequest()->getScheme();
 
             if ((($port === 80) && ($scheme = 'http')) || (($port === 443) && ($scheme = 'https'))) {
                 $port = '';
@@ -164,18 +166,6 @@ class UrlGenerator implements UrlGeneratorInterface
                 sprintf('Invalid Route Url: %s', $e->getMessage())
             );
         }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getRequest(): RequestInterface
-    {
-        if ($this->request === null) {
-            $this->request = Request::createFromGlobals();
-        }
-
-        return $this->request;
     }
 
     /**
@@ -228,16 +218,6 @@ class UrlGenerator implements UrlGeneratorInterface
     public function setPort(?int $port = null): UrlGeneratorInterface
     {
         $this->port = $port;
-
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setRequest(RequestInterface $request): UrlGeneratorInterface
-    {
-        $this->request = $request;
 
         return $this;
     }
