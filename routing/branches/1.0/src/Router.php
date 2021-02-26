@@ -16,7 +16,7 @@ use Pollen\Http\Response;
 use Pollen\Http\ResponseInterface;
 use Pollen\Routing\Strategy\ApplicationStrategy;
 use Pollen\Support\Concerns\ConfigBagAwareTrait;
-use Pollen\Support\Concerns\ContainerAwareTrait;
+use Pollen\Support\Proxy\ContainerProxy;
 use Psr\Container\ContainerInterface as Container;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
 use Psr\Http\Server\MiddlewareInterface;
@@ -25,9 +25,15 @@ use RuntimeException;
 class Router implements RouterInterface
 {
     use ConfigBagAwareTrait;
-    use ContainerAwareTrait;
+    use ContainerProxy;
     use MiddlewareAwareTrait;
     use RouteCollectorAwareTrait;
+
+    /**
+     * Instance principale.
+     * @var static|null
+     */
+    private static $instance;
 
     /**
      * @var string|null
@@ -74,6 +80,23 @@ class Router implements RouterInterface
         $this->routeCollector = new RouteCollector($this);
 
         $this->setBasePrefix(Request::getFromGlobals()->getRewriteBase());
+
+        if (!self::$instance instanceof static) {
+            self::$instance = $this;
+        }
+    }
+
+    /**
+     * Récupération de l'instance principale.
+     *
+     * @return static
+     */
+    public static function getInstance(): RouterInterface
+    {
+        if (self::$instance instanceof self) {
+            return self::$instance;
+        }
+        throw new RuntimeException(sprintf('Unavailable [%s] instance', __CLASS__));
     }
 
     /**

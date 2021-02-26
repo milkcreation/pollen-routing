@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Pollen\Routing;
 
 use League\Route\Route;
-use Pollen\Support\Concerns\ContainerAwareTrait;
 use League\Route\RouteGroup as BaseRouteGroup;
+use Pollen\Support\Proxy\ContainerProxy;
 
 class RouteGroup extends BaseRouteGroup implements RouteGroupInterface
 {
-    use ContainerAwareTrait;
+    use ContainerProxy;
     use RouteCollectorAwareTrait;
 
     /**

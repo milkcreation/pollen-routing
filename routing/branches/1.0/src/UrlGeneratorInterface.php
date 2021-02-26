@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Pollen\Routing;
 
-use Pollen\Http\RequestInterface;
+use Pollen\Support\Proxy\HttpRequestProxyInterface;
 
-interface UrlGeneratorInterface
+interface UrlGeneratorInterface extends HttpRequestProxyInterface
 {
     /**
      * Récupération de l'url.
@@ -16,13 +16,6 @@ interface UrlGeneratorInterface
      * @return string
      */
     public function get(array $args = []): string;
-
-    /**
-     * Récupération de la requête HTTP.
-     *
-     * @return RequestInterface
-     */
-    public function getRequest(): RequestInterface;
 
     /**
      * Définition du format de sortie de l'url (absolue|relative)
@@ -59,15 +52,6 @@ interface UrlGeneratorInterface
      * @return static
      */
     public function setPort(?int $port = null): UrlGeneratorInterface;
-
-    /**
-     * Définition de la requête HTTP.
-     *
-     * @param RequestInterface $request
-     *
-     * @return static
-     */
-    public function setRequest(RequestInterface $request): UrlGeneratorInterface;
 
     /**
      * Définition du protocole de l'url (http|https)

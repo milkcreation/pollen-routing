@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Pollen\Routing;
 
+use League\Route\Middleware\MiddlewareAwareInterface;
 use Pollen\Http\RequestInterface;
 use Pollen\Http\ResponseInterface;
+use Pollen\Support\Concerns\ConfigBagAwareTraitInterface;
+use Pollen\Support\Proxy\ContainerProxyInterface;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
-use League\Route\Middleware\MiddlewareAwareInterface;
 
 /**
- * @mixin \Pollen\Support\Concerns\ConfigBagAwareTrait
- * @mixin \Pollen\Support\Concerns\ContainerAwareTrait
  * @mixin RouteCollectorAwareTrait
  */
-interface RouterInterface extends MiddlewareAwareInterface
+interface RouterInterface extends ConfigBagAwareTraitInterface, ContainerProxyInterface, MiddlewareAwareInterface
 {
     /**
      * Déclaration d'une route.
