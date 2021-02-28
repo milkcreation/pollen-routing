@@ -84,7 +84,12 @@ abstract class BaseController
                     )
                 );
             }
-            $this->viewEngine = new ViewEngine($dir);
+            $this->viewEngine = new ViewEngine();
+            if ($container = $this->getContainer()) {
+                $this->viewEngine->setContainer($container);
+            }
+
+            $this->viewEngine->setDirectory($dir);
         }
         return $this->viewEngine;
     }
