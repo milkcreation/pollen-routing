@@ -6,6 +6,7 @@ namespace Pollen\Routing;
 
 use League\Route\Route;
 use InvalidArgumentException;
+use Pollen\Routing\Middleware\XhrMiddleware;
 use RuntimeException;
 
 trait RouteCollectorAwareTrait
@@ -147,6 +148,14 @@ trait RouteCollectorAwareTrait
      */
     public function xhr(string $path, $handler, string $method = 'POST'): RouteInterface
     {
-        return $this->map($method, $path, $handler)->middle('xhr');
+        $route = $this->map($method, $path, $handler);
+
+        if ($container = $this->getContainer()) {
+            $route->middle('xhr');
+        } else {
+            $route->middleware(new XhrMiddleware());
+        }
+
+        return $route;
     }
 }
