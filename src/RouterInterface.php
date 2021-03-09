@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pollen\Routing;
 
 use League\Route\Middleware\MiddlewareAwareInterface;
+use Pollen\Http\RedirectResponseInterface;
 use Pollen\Http\RequestInterface;
 use Pollen\Http\ResponseInterface;
 use Pollen\Support\Concerns\ConfigBagAwareTraitInterface;
@@ -72,6 +73,25 @@ interface RouterInterface extends ConfigBagAwareTraitInterface, ContainerProxyIn
     public function getNamedRoute(string $name): ?RouteInterface;
 
     /**
+     * Récupération de la réponse HTTP de redirection vers une route qualifiée.
+     *
+     * @param string $name
+     * @param array $args
+     * @param bool $isAbsolute
+     * @param int $status
+     * @param array $headers
+     *
+     * @return RedirectResponseInterface
+     */
+    public function getNamedRouteRedirect(
+        string $name,
+        array $args = [],
+        bool $isAbsolute = false,
+        int $status = 302,
+        array $headers = []
+    ): RedirectResponseInterface;
+
+    /**
      * Récupération de l'url d'une route qualifiée.
      *
      * @param string $name
@@ -88,6 +108,25 @@ interface RouterInterface extends ConfigBagAwareTraitInterface, ContainerProxyIn
      * @return RouteCollectorInterface
      */
     public function getRouteCollector(): RouteCollectorInterface;
+
+    /**
+     * Récupération de la réponse HTTP de redirection vers une route.
+     *
+     * @param RouteInterface $route
+     * @param array $args
+     * @param bool $isAbsolute
+     * @param int $status
+     * @param array $headers
+     *
+     * @return RedirectResponseInterface
+     */
+    public function getRouteRedirect(
+        RouteInterface $route,
+        array $args = [],
+        bool $isAbsolute = false,
+        int $status = 302,
+        array $headers = []
+    ): RedirectResponseInterface;
 
     /**
      * Récupération de l'url d'une route.

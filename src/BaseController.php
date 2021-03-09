@@ -13,13 +13,11 @@ use Pollen\Http\RedirectResponseInterface;
 use Pollen\Http\Response;
 use Pollen\Http\ResponseInterface;
 use Pollen\Support\Concerns\ParamsBagAwareTrait;
+use Pollen\Support\Env;
 use Pollen\Support\Proxy\ContainerProxy;
 use Pollen\Support\Proxy\HttpRequestProxy;
-use Pollen\Support\Env;
-use Pollen\View\ViewEngine;
-use Pollen\View\ViewEngineInterface;
+use Pollen\Support\Proxy\RouterProxy;
 use Psr\Container\ContainerInterface as Container;
-use RuntimeException;
 use SplFileInfo;
 
 abstract class BaseController
@@ -27,6 +25,7 @@ abstract class BaseController
     use ContainerProxy;
     use ParamsBagAwareTrait;
     use HttpRequestProxy;
+    use RouterProxy;
 
     /**
      * Indicateur d'activation du mode de débogage.
@@ -66,44 +65,6 @@ abstract class BaseController
     protected function debug(): bool
     {
         return is_null($this->debug) ? Env::isDev() : $this->debug;
-    }
-
-    /**
-     * Moteur d'affichage des gabarits d'affichage.
-     *
-     * @return ViewEngineInterface
-     */
-    protected function getViewEngine(): ViewEngineInterface
-    {
-        if ($this->viewEngine === null) {
-            if ((!$dir = $this->viewEngineDirectory()) || !is_dir($dir)) {
-                throw new RuntimeException(
-                    sprintf(
-                        'View Engine Directory unavailable in HttpController [%s]',
-                        get_class($this)
-                    )
-                );
-            }
-            $this->viewEngine = new ViewEngine();
-            if ($container = $this->getContainer()) {
-                $this->viewEngine->setContainer($container);
-            }
-
-            $this->viewEngine->setDirectory($dir);
-        }
-        return $this->viewEngine;
-    }
-
-    /**
-     * Vérification d'existence d'un gabarit d'affichage.
-     *
-     * @param string $view Nom de qualification du gabarit.
-     *
-     * @return bool
-     */
-    protected function hasView(string $view): bool
-    {
-        return $this->getViewEngine()->exists($view);
     }
 
     /**
@@ -168,19 +129,6 @@ abstract class BaseController
     }
 
     /**
-     * Récupération de l'affichage d'un gabarit.
-     *
-     * @param string $view Nom de qualification du gabarit.
-     * @param array $data Liste des variables passées en argument.
-     *
-     * @return string
-     */
-    protected function render(string $view, array $data = []): string
-    {
-        return $this->getViewEngine()->render($view, $data);
-    }
-
-    /**
      * Retourne la réponse HTTP.
      *
      * @param string $content .
@@ -197,23 +145,22 @@ abstract class BaseController
     /**
      * Redirection vers une route déclarée.
      *
-     * @param string $name Nom de qualification de la route.
-     * @param array $params Liste des paramètres de définition de l'url de la route.
-     * @param int $status Statut de redirection.
-     * @param array $headers Liste des entêtes complémentaires associées à la redirection.
+     * @param string $name
+     * @param array $params
+     * @param bool $isAbsolute
+     * @param int $status
+     * @param array $headers
      *
-     * @return RedirectResponse
+     * @return RedirectResponseInterface
      */
-    public function route(string $name, array $params = [], int $status = 302, array $headers = []): RedirectResponse
-    {
-        if ($this->containerHas(RouterInterface::class)) {
-            /** @var RouterInterface $router */
-            $router = $this->containerGet(RouterInterface::class);
-
-            $url = $router->getNamedRouteUrl($name, $params);
-            return new RedirectResponse($url, $status, $headers);
-        }
-        throw new RuntimeException('Any router are available');
+    public function route(
+        string $name,
+        array $params = [],
+        bool $isAbsolute = false,
+        int $status = 302,
+        array $headers = []
+    ): RedirectResponseInterface {
+        return $this->router()->getNamedRouteRedirect($name, $params, $isAbsolute, $status, $headers);
     }
 
     /**
@@ -229,57 +176,4 @@ abstract class BaseController
 
         return $this;
     }
-
-    /**
-     * Définition du moteur des gabarits d'affichage.
-     *
-     * @param ViewEngineInterface $viewEngine
-     *
-     * @return static
-     */
-    public function setViewEngine(ViewEngineInterface $viewEngine): self
-    {
-        $this->viewEngine = $viewEngine;
-
-        return $this;
-    }
-
-    /**
-     * Définition des variables partagées à l'ensemble des vues.
-     *
-     * @param string|array $key
-     * @param mixed $value
-     *
-     * @return $this
-     */
-    public function share($key, $value = null): self
-    {
-        $keys = !is_array($key) ? [$key => $value] : $key;
-
-        foreach ($keys as $k => $v) {
-            $this->getViewEngine()->share($k, $v);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Génération de la réponse HTTP associé à l'affichage d'un gabarit.
-     *
-     * @param string $view Nom de qualification du gabarit.
-     * @param array $data Liste des variables passées en argument.
-     *
-     * @return ResponseInterface
-     */
-    protected function view(string $view, array $data = []): ResponseInterface
-    {
-        return $this->response($this->render($view, $data));
-    }
-
-    /**
-     * Répertoire des gabarits d'affichage.
-     *
-     * @return string
-     */
-    abstract protected function viewEngineDirectory(): string;
 }
