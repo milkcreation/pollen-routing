@@ -10,6 +10,8 @@ use InvalidArgumentException;
 use League\Route\Http\Exception\NotFoundException;
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use League\Route\Middleware\MiddlewareAwareTrait;
+use Pollen\Http\RedirectResponse;
+use Pollen\Http\RedirectResponseInterface;
 use Pollen\Http\Request;
 use Pollen\Http\RequestInterface;
 use Pollen\Http\Response;
@@ -200,6 +202,22 @@ class Router implements RouterInterface
     /**
      * @inheritDoc
      */
+    public function getNamedRouteRedirect(
+        string $name,
+        array $args = [],
+        bool $isAbsolute = false,
+        int $status = 302,
+        array $headers = []
+    ): RedirectResponseInterface {
+        if ($route = $this->getNamedRoute($name)) {
+            return $this->getRouteRedirect($route, $args, $isAbsolute, $status, $headers);
+        }
+        return new RedirectResponse('', $status, $headers);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getNamedRouteUrl(string $name, array $args = [], bool $isAbsolute = false): ?string
     {
         if ($route = $this->getNamedRoute($name)) {
@@ -219,6 +237,22 @@ class Router implements RouterInterface
     /**
      * @inheritDoc
      */
+    public function getRouteRedirect(
+        RouteInterface $route,
+        array $args = [],
+        bool $isAbsolute = false,
+        int $status = 302,
+        array $headers = []
+    ): RedirectResponseInterface {
+        if ($url = $this->getRouteUrl($route, $args, $isAbsolute)) {
+            return new RedirectResponse($url, $status, $headers);
+        }
+        return new RedirectResponse('', $status, $headers);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getRouteUrl(RouteInterface $route, array $args = [], bool $isAbsolute = false): ?string
     {
         try {
@@ -231,7 +265,7 @@ class Router implements RouterInterface
                 ->setScheme($route->getScheme())
                 ->setUrlPatterns($this->getRouteCollector()->getUrlPatterns())
                 ->get($args);
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }
