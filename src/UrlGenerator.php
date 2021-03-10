@@ -73,7 +73,7 @@ class UrlGenerator implements UrlGeneratorInterface
 
     /**
      * @param string $path
-     * @param \Pollen\Http\RequestInterface|null $request
+     * @param RequestInterface|null $request
      */
     public function __construct(string $path, ?RequestInterface $request)
     {

@@ -16,9 +16,9 @@ use Pollen\Http\Request;
 use Pollen\Http\RequestInterface;
 use Pollen\Http\Response;
 use Pollen\Http\ResponseInterface;
-use Pollen\Routing\Strategy\ApplicationStrategy;
 use Pollen\Support\Concerns\ConfigBagAwareTrait;
 use Pollen\Support\Proxy\ContainerProxy;
+use Pollen\Support\Proxy\HttpRequestProxy;
 use Psr\Container\ContainerInterface as Container;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
 use Psr\Http\Server\MiddlewareInterface;
@@ -28,6 +28,7 @@ class Router implements RouterInterface
 {
     use ConfigBagAwareTrait;
     use ContainerProxy;
+    use HttpRequestProxy;
     use MiddlewareAwareTrait;
     use RouteCollectorAwareTrait;
 
@@ -194,6 +195,18 @@ class Router implements RouterInterface
     /**
      * @inheritDoc
      */
+    public function getHandleRequest(): RequestInterface
+    {
+        if ($this->handleRequest === null) {
+            $this->handleRequest = $this->httpRequest();
+        }
+
+        return $this->handleRequest;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getNamedRoute(string $name): ?RouteInterface
     {
         return $this->getRouteCollector()->getRoute($name);
@@ -294,18 +307,10 @@ class Router implements RouterInterface
     /**
      * @inheritDoc
      */
-    public function handleRequest(RequestInterface $request): ResponseInterface
+    public function handleRequest(): ResponseInterface
     {
         try {
-            $this->handleRequest = $request;
-
-            if ($this->routeCollector->getStrategy() === null) {
-                $strategy = new ApplicationStrategy();
-                if ($container = $this->getContainer()) {
-                    $strategy->setContainer($container);
-                }
-                $this->routeCollector->setStrategy($strategy);
-            }
+            $request = $this->getHandleRequest();
 
             $psrResponse = $this->routeCollector->dispatch($request->psr());
 
@@ -437,6 +442,18 @@ class Router implements RouterInterface
     public function setFallback($fallback): RouterInterface
     {
         $this->fallback = $fallback;
+
+        return $this;
+    }
+
+    /**
+     * @param RequestInterface $handleRequest
+     *
+     * @return $this
+     */
+    public function setHandleRequest(RequestInterface $handleRequest): RouterInterface
+    {
+        $this->handleRequest = $handleRequest;
 
         return $this;
     }

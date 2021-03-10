@@ -10,12 +10,17 @@ use Pollen\Http\RequestInterface;
 use Pollen\Http\ResponseInterface;
 use Pollen\Support\Concerns\ConfigBagAwareTraitInterface;
 use Pollen\Support\Proxy\ContainerProxyInterface;
+use Pollen\Support\Proxy\HttpRequestProxyInterface;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
 
 /**
  * @mixin RouteCollectorAwareTrait
  */
-interface RouterInterface extends ConfigBagAwareTraitInterface, ContainerProxyInterface, MiddlewareAwareInterface
+interface RouterInterface extends
+    ConfigBagAwareTraitInterface,
+    ContainerProxyInterface,
+    HttpRequestProxyInterface,
+    MiddlewareAwareInterface
 {
     /**
      * Déclaration d'une route.
@@ -62,6 +67,13 @@ interface RouterInterface extends ConfigBagAwareTraitInterface, ContainerProxyIn
      * @return callable|null
      */
     public function getFallbackCallable(): ?callable;
+
+    /**
+     * Récupération de la requête HTTP de traitement.
+     *
+     * @return RequestInterface
+     */
+    public function getHandleRequest(): RequestInterface;
 
     /**
      * Récupération d'une route qualifiée.
@@ -150,13 +162,11 @@ interface RouterInterface extends ConfigBagAwareTraitInterface, ContainerProxyIn
     public function group(string $prefix, callable $group): RouteGroupInterface;
 
     /**
-     * Traitement de la requête.
-     *
-     * @param RequestInterface $request
+     * Traitement de la requête HTTP.
      *
      * @return ResponseInterface
      */
-    public function handleRequest(RequestInterface $request): ResponseInterface;
+    public function handleRequest(): ResponseInterface;
 
     /**
      * Déclaration d'une route.
@@ -192,9 +202,18 @@ interface RouterInterface extends ConfigBagAwareTraitInterface, ContainerProxyIn
      *
      * @param RouteInterface $route
      *
-     * @return RouterInterface
+     * @return static
      */
     public function setCurrentRoute(RouteInterface $route): RouterInterface;
+
+    /**
+     * Définition de la requête HTTP de traitement.
+     *
+     * @param RequestInterface $handleRequest
+     *
+     * @return static
+     */
+    public function setHandleRequest(RequestInterface $handleRequest): RouterInterface;
 
     /**
      * Termine le cycle de la requête et de la réponse HTTP.

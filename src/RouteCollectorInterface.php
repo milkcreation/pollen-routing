@@ -10,10 +10,10 @@ use Psr\Http\Message\ServerRequestInterface as PsrRequest;
 
 /**
  * @mixin \League\Route\Route
+ * @mixin \FastRoute\RouteCollector
  */
 interface RouteCollectorInterface extends BaseRouteCollectorInterface
 {
-
     /**
      * Déclaration d'un groupe.
      *
@@ -56,4 +56,13 @@ interface RouteCollectorInterface extends BaseRouteCollectorInterface
      * @return array
      */
     public function getUrlPatterns(): array;
+
+    /**
+     * Préparation des routes déclarées.
+     *
+     * @param PsrRequest $request
+     *
+     * @return void
+     */
+    public function prepareRoutes(PsrRequest $request): void;
 }

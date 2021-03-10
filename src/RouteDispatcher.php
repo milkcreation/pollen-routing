@@ -17,14 +17,13 @@ class RouteDispatcher extends BaseRouteDispatcher
     protected $router;
 
     /**
-     * @param $data
      * @param RouterInterface $router
      */
-    public function __construct($data, RouterInterface $router)
+    public function __construct(RouterInterface $router)
     {
         $this->router = $router;
 
-        parent::__construct($data);
+        parent::__construct($router->getRouteCollector()->getData());
     }
 
     /**
