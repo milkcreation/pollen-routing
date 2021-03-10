@@ -20,9 +20,6 @@ use Pollen\Http\Response;
 use Pollen\Http\ResponseInterface;
 use Pollen\Routing\Router;
 
-// Create the Request object
-$request = Request::createFromGlobals();
-
 // Router instantiation
 $router = new Router();
 
@@ -31,13 +28,17 @@ $router->map('GET', '/', function (): ResponseInterface {
 return new Response('<h1>Hello, World!</h1>');
 });
 
+// Setting Handle Request (optionnal)
+$request = Request::createFromGlobals();
+$router->setHandleRequest($request);
+
 // Map a Fallback Route (optionnal)
 $router->setFallback(function () {
     return new Response('<h1>404</h1>', 404);
 });
 
 // Catch HTTP Response
-$response = $router->handleRequest($request);
+$response = $router->handleRequest();
 
 // Send the response to the browser
 $router->sendResponse($response);

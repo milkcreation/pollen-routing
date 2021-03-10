@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace Pollen\Routing;
 
+use BadMethodCallException;
 use Exception;
 use FastRoute\RouteCollector as FastRouteRouteCollector;
 use League\Route\Dispatcher;
 use League\Route\Router as BaseRouteCollector;
 use League\Route\Strategy\OptionsHandlerInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
+use Pollen\Routing\Strategy\ApplicationStrategy;
+use Psr\Http\Message\ResponseInterface as PsrResponse;
+use Psr\Http\Message\ServerRequestInterface as PsrRequest;
+use Throwable;
 
+/**
+ * @mixin FastRouteRouteCollector
+ */
 class RouteCollector extends BaseRouteCollector implements RouteCollectorInterface
 {
     /**
@@ -28,6 +34,33 @@ class RouteCollector extends BaseRouteCollector implements RouteCollectorInterfa
         $this->router = $router;
 
         parent::__construct($routeCollector);
+    }
+
+    /**
+     * Appel des méthodes du collecteur de routes délégué.
+     *
+     * @param string $method
+     * @param array $arguments
+     *
+     * @return mixed
+     *
+     * @throws Exception
+     */
+    public function __call(string $method, array $arguments)
+    {
+        try {
+            return $this->routeCollector->{$method}(...$arguments);
+        } catch (Exception $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            throw new BadMethodCallException(
+                sprintf(
+                    'Delegate RouteCollector method call [%s] throws an exception: %s',
+                    $method,
+                    $e->getMessage()
+                ), 0, $e
+            );
+        }
     }
 
     /**
@@ -82,14 +115,14 @@ class RouteCollector extends BaseRouteCollector implements RouteCollectorInterfa
     /**
      * @inheritDoc
      */
-    public function dispatch(ServerRequestInterface $request): ResponseInterface
+    public function dispatch(PsrRequest $request): PsrResponse
     {
         if (false === $this->routesPrepared) {
             $this->prepareRoutes($request);
         }
 
         /** @var Dispatcher $dispatcher */
-        $dispatcher = (new RouteDispatcher($this->routesData, $this->router))->setStrategy($this->getStrategy());
+        $dispatcher = (new RouteDispatcher($this->router))->setStrategy($this->getStrategy());
 
         foreach ($this->getMiddlewareStack() as $middleware) {
             if (is_string($middleware)) {
@@ -124,5 +157,21 @@ class RouteCollector extends BaseRouteCollector implements RouteCollectorInterfa
     public function getUrlPatterns(): array
     {
         return $this->patternMatchers;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function prepareRoutes(PsrRequest $request): void
+    {
+        if ($this->getStrategy() === null) {
+            $strategy = new ApplicationStrategy();
+            if ($container = $this->router->getContainer()) {
+                $strategy->setContainer($container);
+            }
+            $this->setStrategy($strategy);
+        }
+
+        parent::prepareRoutes($request);
     }
 }
