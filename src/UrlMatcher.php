@@ -46,7 +46,8 @@ class UrlMatcher implements UrlMatcherInterface
         $match = (new RouteDispatcher($this->router))->dispatch($method, $uri);
 
         if ($match[0] === FastRoute::FOUND) {
-            $this->request->attributes->set('_route', $match[1]);
+            $route = ($match[1] instanceof RouteInterface) ? $match[1] : new Route($method, $uri, $match[1]);
+            $this->request->attributes->set('_route', $route);
 
             foreach((array)$match[2] as $varKey => $varVal) {
                 $this->request->attributes->set("_{$varKey}", $varVal);
