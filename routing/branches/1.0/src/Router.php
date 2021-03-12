@@ -136,9 +136,6 @@ class Router implements RouterInterface
      */
     public function current(): ?RouteInterface
     {
-        if ($this->handleRequest === null) {
-            throw new RuntimeException('Request must be handled before requesting the current route');
-        }
         return $this->currentRoute;
     }
 
