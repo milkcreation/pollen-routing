@@ -20,9 +20,33 @@ interface RouteAwareInterface extends
     public function getName(): ?string;
     public function getPort(): ?int;
     public function getScheme(): ?string;
+
+    /**
+     * @param string $host
+     *
+     * @return RouteConditionHandlerInterface|RouteInterface
+     */
     public function setHost(string $host): RouteConditionHandlerInterface;
+
+    /**
+     * @param string $name
+     *
+     * @return RouteConditionHandlerInterface|RouteInterface
+     */
     public function setName(string $name): RouteConditionHandlerInterface;
+
+    /**
+     * @param int $port
+     *
+     * @return RouteConditionHandlerInterface|RouteInterface
+     */
     public function setPort(int $port): RouteConditionHandlerInterface;
+
+    /**
+     * @param string $scheme
+     *
+     * @return RouteConditionHandlerInterface|RouteInterface
+     */
     public function setScheme(string $scheme): RouteConditionHandlerInterface;
 
     public function getMiddlewareStack(): iterable;
@@ -37,6 +61,17 @@ interface RouteAwareInterface extends
     public function getStrategy(): ?StrategyInterface;
     public function setStrategy(StrategyInterface $strategy): StrategyAwareInterface;
 
+    /**
+     * @param string $alias
+     *
+     * @return RouteCollectorAwareTrait|RouteInterface
+     */
     public function middle(string $alias): RouteCollectorAwareTrait;
+
+    /**
+     * @param string $alias
+     *
+     * @return RouteCollectorAwareTrait|RouteInterface
+     */
     public function strategy(string $alias): RouteCollectorAwareTrait;
 }

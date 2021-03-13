@@ -10,7 +10,6 @@ use Pollen\Support\Proxy\ContainerProxyInterface;
 
 /**
  * @mixin \League\Route\Route
- * @mixin RouteCollectorAwareTrait
  */
 interface RouteInterface extends ContainerProxyInterface, RouteAwareInterface
 {
