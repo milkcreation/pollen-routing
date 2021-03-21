@@ -66,12 +66,12 @@ interface RouteAwareInterface extends
      *
      * @return RouteCollectorAwareTrait|RouteInterface
      */
-    public function middle(string $alias): RouteCollectorAwareTrait;
+    public function middle(string $alias): self;
 
     /**
      * @param string $alias
      *
      * @return RouteCollectorAwareTrait|RouteInterface
      */
-    public function strategy(string $alias): RouteCollectorAwareTrait;
+    public function strategy(string $alias): self;
 }

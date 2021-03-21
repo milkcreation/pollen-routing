@@ -18,7 +18,7 @@ trait RouteCollectorAwareTrait
      *
      * @return static
      */
-    public function middle(string $alias): RouteCollectorAwareTrait
+    public function middle(string $alias): self
     {
         if (!$this->getContainer()) {
             throw new RuntimeException('Middleware aliased declaration require dependency injection container');
@@ -42,7 +42,7 @@ trait RouteCollectorAwareTrait
      *
      * @return static
      */
-    public function strategy(string $alias): RouteCollectorAwareTrait
+    public function strategy(string $alias): self
     {
         if (!$this->getContainer()) {
             throw new RuntimeException('Strategy aliased declaration require dependency injection container');
@@ -150,9 +150,9 @@ trait RouteCollectorAwareTrait
     {
         $route = $this->map($method, $path, $handler);
 
-        if ($container = $this->getContainer()) {
+        try {
             $route->middle('xhr');
-        } else {
+        } catch(RuntimeException $e) {
             $route->middleware(new XhrMiddleware());
         }
 
