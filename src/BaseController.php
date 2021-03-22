@@ -82,7 +82,10 @@ abstract class BaseController
         string $disposition = 'attachment'
     ): BinaryFileResponseInterface {
         $response = new BinaryFileResponse($file);
-        $response->setContentDisposition($disposition, $fileName ?? $response->getFile()->getFilename());
+
+        $filename = $fileName ?? $response->getFile()->getFilename();
+        $response->headers->set ('Content-Type', $response->getFile()->getMimeType());
+        $response->setContentDisposition($disposition, $filename);
 
         return $response;
     }
