@@ -8,7 +8,7 @@
     "PSR-7",
     "PSR-15"
   ],
-  "time": "2021-03-22",
+  "time": "2021-03-28",
   "license": "MIT",
   "authors": [
     {
@@ -50,7 +50,7 @@
     }
   },
   "suggest": {
-    "pollen-solutions/container" : "Pollen Container Component - PSR-11 ready Dependencies Injection Container"
+    "pollen-solutions/container" : "Pollen Container Component - PSR-11 ready Dependencies Injection Container."
   },
   "minimum-stability": "dev",
   "prefer-stable": true,

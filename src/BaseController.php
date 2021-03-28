@@ -71,7 +71,7 @@ abstract class BaseController
      * Retourne la réponse de téléchargement ou d'affichage d'un fichier.
      *
      * @param SplFileInfo|string $file
-     * @param string|null
+     * @param string|null $fileName
      * @param string $disposition attachment|inline
      *
      * @return BinaryFileResponseInterface
