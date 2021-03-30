@@ -166,6 +166,7 @@ class RouteCollector extends BaseRouteCollector implements RouteCollectorInterfa
     {
         if ($this->getStrategy() === null) {
             $strategy = new ApplicationStrategy();
+
             if ($container = $this->router->getContainer()) {
                 $strategy->setContainer($container);
             }

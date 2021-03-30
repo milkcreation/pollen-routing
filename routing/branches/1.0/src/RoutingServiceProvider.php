@@ -52,10 +52,16 @@ class RoutingServiceProvider extends BaseServiceProvider
     public function registerStrategies(): void
     {
         $this->getContainer()->add('routing.strategy.app', function () {
-            return (new ApplicationStrategy())->setContainer($this->getContainer());
+            $applicationStrategy = new ApplicationStrategy();
+            $applicationStrategy->setContainer($this->getContainer());
+
+            return $applicationStrategy;
         });
         $this->getContainer()->add('routing.strategy.json', function () {
-            return (new JsonStrategy(new ResponseFactory()))->setContainer($this->getContainer());
+            $jsonStrategy = new JsonStrategy(new ResponseFactory());
+            $jsonStrategy->setContainer($this->getContainer());
+
+            return $jsonStrategy;
         });
     }
 }
