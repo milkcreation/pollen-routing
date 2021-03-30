@@ -75,7 +75,7 @@ class UrlGenerator implements UrlGeneratorInterface
      * @param string $path
      * @param RequestInterface|null $request
      */
-    public function __construct(string $path, ?RequestInterface $request)
+    public function __construct(string $path, ?RequestInterface $request = null)
     {
         $this->path = $path;
 

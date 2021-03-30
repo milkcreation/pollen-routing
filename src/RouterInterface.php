@@ -216,6 +216,15 @@ interface RouterInterface extends
     public function setHandleRequest(RequestInterface $handleRequest): RouterInterface;
 
     /**
+     * Définition de la route de rappel.
+     *
+     * @param callable|string $fallback
+     *
+     * @return $this
+     */
+    public function setFallback($fallback): RouterInterface;
+
+    /**
      * Termine le cycle de la requête et de la réponse HTTP.
      *
      * @param RequestInterface $request
