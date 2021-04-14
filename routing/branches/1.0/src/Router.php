@@ -7,7 +7,7 @@ namespace Pollen\Routing;
 use Exception;
 use FastRoute\BadRouteException;
 use InvalidArgumentException;
-use League\Route\Http\Exception\NotFoundException;
+use League\Route\Http\Exception as HttpException;
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use League\Route\Middleware\MiddlewareAwareTrait;
 use Pollen\Http\RedirectResponse;
@@ -23,6 +23,7 @@ use Psr\Container\ContainerInterface as Container;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
 use Psr\Http\Server\MiddlewareInterface;
 use RuntimeException;
+use Throwable;
 
 class Router implements RouterInterface
 {
@@ -316,12 +317,12 @@ class Router implements RouterInterface
             throw new RuntimeException(
                 sprintf('Bad Route declaration thrown exception : [%s]', $e->getMessage())
             );
-        } catch (Exception $e) {
-            if ($e instanceof NotFoundException && ($fallback = $this->getFallbackCallable())) {
-                $fallback = $this->getFallbackCallable();
-
-                return $fallback();
+        } catch (HttpException $e) {
+            if ($fallback = $this->getFallbackCallable()) {
+                return $fallback($e);
             }
+            return new Response($e->getMessage(), $e->getStatusCode());
+        } catch (Throwable $e) {
             throw new RuntimeException($e->getMessage());
         }
     }
