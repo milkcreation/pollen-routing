@@ -13,7 +13,7 @@ abstract class BaseViewController extends BaseController
 {
     /**
      * Instance du moteur de gabarits d'affichage.
-     * @var
+     * @var ViewEngineInterface
      */
     protected $viewEngine;
 
