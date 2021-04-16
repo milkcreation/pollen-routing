@@ -156,7 +156,7 @@ abstract class BaseController
      *
      * @return RedirectResponseInterface
      */
-    public function route(
+    protected function route(
         string $name,
         array $params = [],
         bool $isAbsolute = false,
