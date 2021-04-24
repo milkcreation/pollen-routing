@@ -7,9 +7,9 @@ namespace Pollen\Routing;
 use Exception;
 use FastRoute\BadRouteException;
 use InvalidArgumentException;
-use League\Route\Http\Exception as HttpException;
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use League\Route\Middleware\MiddlewareAwareTrait;
+use League\Route\Http\Exception\HttpExceptionInterface as BaseHttpExceptionInterface;
 use Pollen\Http\RedirectResponse;
 use Pollen\Http\RedirectResponseInterface;
 use Pollen\Http\Request;
@@ -20,9 +20,10 @@ use Pollen\Support\Concerns\ConfigBagAwareTrait;
 use Pollen\Support\Exception\ManagerRuntimeException;
 use Pollen\Support\Proxy\ContainerProxy;
 use Pollen\Support\Proxy\HttpRequestProxy;
+use Pollen\Routing\Exception\HttpExceptionInterface;
 use Psr\Container\ContainerInterface as Container;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
-use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\MiddlewareInterface as BaseMiddlewareInterface;
 use RuntimeException;
 use Throwable;
 
@@ -318,7 +319,7 @@ class Router implements RouterInterface
             throw new RuntimeException(
                 sprintf('Bad Route declaration thrown exception : [%s]', $e->getMessage())
             );
-        } catch (HttpException $e) {
+        } catch (HttpExceptionInterface|BaseHttpExceptionInterface $e) {
             if ($fallback = $this->getFallbackCallable()) {
                 return $fallback($e);
             }
@@ -364,7 +365,7 @@ class Router implements RouterInterface
         throw new RuntimeException('Route Fallback Class unresolvable');
     }
 
-    protected function resolveMiddleware($middleware): MiddlewareInterface
+    protected function resolveMiddleware($middleware): BaseMiddlewareInterface
     {
         $container = $this->getContainer();
 
@@ -376,7 +377,7 @@ class Router implements RouterInterface
             $middleware = $container->get($middleware);
         }
 
-        if ($middleware instanceof MiddlewareInterface) {
+        if ($middleware instanceof BaseMiddlewareInterface) {
             return $middleware;
         }
 
@@ -408,9 +409,9 @@ class Router implements RouterInterface
             }
         }
 
-        $response = $this->beforeSendResponse($response->psr());
+        $psrResponse = $this->beforeSendResponse($response->psr());
 
-        return (new SapiEmitter())->emit($response);
+        return (new SapiEmitter())->emit($psrResponse);
     }
 
     /**
