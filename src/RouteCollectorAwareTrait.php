@@ -24,13 +24,17 @@ trait RouteCollectorAwareTrait
             throw new RuntimeException('Middleware aliased declaration require dependency injection container');
         }
 
-        if (!$this->getContainer()->has("routing.middleware.{$alias}")) {
+        if (!$this->getContainer()->has($alias)){
+            $alias = "routing.middleware.$alias";
+        }
+
+        if (!$this->getContainer()->has($alias)) {
             throw new InvalidArgumentException(
                 sprintf('Middleware alias [%s] is not being managed by the container', $alias)
             );
         }
 
-        $this->lazyMiddleware("routing.middleware.{$alias}");
+        $this->lazyMiddleware($alias);
 
         return $this;
     }
