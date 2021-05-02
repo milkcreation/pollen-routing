@@ -207,6 +207,14 @@ class Router implements RouterInterface
     /**
      * @inheritDoc
      */
+    public function hasFallback(): bool
+    {
+        return $this->fallback !== null;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getNamedRoute(string $name): ?RouteInterface
     {
         return $this->getRouteCollector()->getRoute($name);

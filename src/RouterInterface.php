@@ -169,6 +169,13 @@ interface RouterInterface extends
     public function handleRequest(): ResponseInterface;
 
     /**
+     * Vérification d'existence d'une fonction de rappel.
+     *
+     * @return bool
+     */
+    public function hasFallback(): bool;
+
+    /**
      * Déclaration d'une route.
      *
      * @param string $method
