@@ -333,7 +333,7 @@ class Router implements RouterInterface
             }
             return new Response($e->getMessage(), $e->getStatusCode());
         } catch (Throwable $e) {
-            throw new RuntimeException($e->getMessage());
+            throw new RuntimeException($e->getMessage(), 0, $e);
         }
     }
 
