@@ -12,18 +12,17 @@ use Pollen\Http\RedirectResponse;
 use Pollen\Http\RedirectResponseInterface;
 use Pollen\Http\Response;
 use Pollen\Http\ResponseInterface;
-use Pollen\Support\Concerns\ParamsBagAwareTrait;
 use Pollen\Support\Env;
+use Pollen\Support\ParamsBag;
 use Pollen\Support\Proxy\ContainerProxy;
 use Pollen\Support\Proxy\HttpRequestProxy;
 use Pollen\Support\Proxy\RouterProxy;
 use Psr\Container\ContainerInterface as Container;
 use SplFileInfo;
 
-abstract class BaseController
+class BaseController
 {
     use ContainerProxy;
-    use ParamsBagAwareTrait;
     use HttpRequestProxy;
     use RouterProxy;
 
@@ -32,6 +31,11 @@ abstract class BaseController
      * @var bool|null
      */
     protected $debug;
+
+    /**
+     *
+     */
+    protected $datasBag;
 
     /**
      * Instance du moteur de gabarits d'affichage.
@@ -102,6 +106,57 @@ abstract class BaseController
     protected function json($data = null, int $status = 200, array $headers = []): JsonResponseInterface
     {
         return new JsonResponse($data, $status, $headers);
+    }
+
+    /**
+     * Définition|Récupération|Instance des données associées.
+     *
+     * @param array|string|null $key
+     * @param mixed $default
+     *
+     * @return string|int|array|mixed|ParamsBag
+     *
+     * @throws InvalidArgumentException
+     */
+    public function datas($key = null, $default = null)
+    {
+        if (!$this->datasBag instanceof ParamsBag) {
+            $this->datasBag = new ParamsBag($this->defaultDatas());
+        }
+
+        if ($key === null) {
+            return $this->datasBag;
+        }
+
+        if (is_string($key)) {
+            return $this->datasBag->get($key, $default);
+        }
+
+        if (is_array($key)) {
+            $this->datasBag->set($key);
+
+            return $this->datasBag;
+        }
+
+        throw new InvalidArgumentException('Invalid DatasBag passed method arguments');
+    }
+
+    /**
+     * Liste des données associées par défaut.
+     *
+     * @return array
+     */
+    public function defaultDatas() : array
+    {
+        return [];
+    }
+
+    /**
+     * @deprecated
+     */
+    public function params($key = null, $default = null)
+    {
+        return $this->datas($key, $default);
     }
 
     /**

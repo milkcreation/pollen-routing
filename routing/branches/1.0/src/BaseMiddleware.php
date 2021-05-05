@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Pollen\Routing;
 
+use Pollen\Http\JsonResponse;
+use Pollen\Http\JsonResponseInterface;
 use Pollen\Http\RedirectResponse;
 use Pollen\Support\Proxy\HttpRequestProxy;
 use Pollen\Support\Proxy\RouterProxy;
@@ -30,6 +32,20 @@ abstract class BaseMiddleware implements MiddlewareInterface
     public function beforeSend(PsrResponse $response, RouterInterface $router): PsrResponse
     {
         return $router->beforeSendResponse($response);
+    }
+
+    /**
+     * Retourne la réponse JSON HTTP.
+     *
+     * @param string|array|object|null $data
+     * @param int $status
+     * @param array $headers
+     *
+     * @return PsrResponse
+     */
+    protected function json($data = null, int $status = 200, array $headers = []): PsrResponse
+    {
+        return (new JsonResponse($data, $status, $headers))->psr();
     }
 
     /**

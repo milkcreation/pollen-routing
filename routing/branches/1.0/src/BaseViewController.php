@@ -59,13 +59,13 @@ abstract class BaseViewController extends BaseController
      * Récupération de l'affichage d'un gabarit.
      *
      * @param string $view Nom de qualification du gabarit.
-     * @param array $data Liste des variables passées en argument.
+     * @param array $datas Liste des variables passées en argument.
      *
      * @return string
      */
-    protected function render(string $view, array $data = []): string
+    protected function render(string $view, array $datas = []): string
     {
-        return $this->getViewEngine()->render($view, $data);
+        return $this->getViewEngine()->render($view, $this->datas($datas)->all());
     }
 
     /**
@@ -105,13 +105,13 @@ abstract class BaseViewController extends BaseController
      * Génération de la réponse HTTP associée à l'affichage d'un gabarit.
      *
      * @param string $view Nom de qualification du gabarit.
-     * @param array $data Liste des variables passées en argument.
+     * @param array $datas Liste des variables passées en argument.
      *
      * @return ResponseInterface
      */
-    protected function view(string $view, array $data = []): ResponseInterface
+    protected function view(string $view, array $datas = []): ResponseInterface
     {
-        return $this->response($this->render($view, $data));
+        return $this->response($this->render($view, $datas));
     }
 
     /**
