@@ -332,8 +332,6 @@ class Router implements RouterInterface
                 return $fallback($e);
             }
             return new Response($e->getMessage(), $e->getStatusCode());
-        } catch (Throwable $e) {
-            throw new RuntimeException($e->getMessage(), 0, $e);
         }
     }
 
