@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Pollen\Routing;
 
-use Pollen\Container\BaseServiceProvider;
+use Pollen\Container\BootableServiceProvider;
 use Pollen\Routing\Middleware\XhrMiddleware;
 use Pollen\Routing\Strategy\ApplicationStrategy;
 use Pollen\Routing\Strategy\JsonStrategy;
 use Laminas\Diactoros\ResponseFactory;
 
-class RoutingServiceProvider extends BaseServiceProvider
+class RoutingServiceProvider extends BootableServiceProvider
 {
     protected $provides = [
         RouterInterface::class,
