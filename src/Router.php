@@ -49,7 +49,7 @@ class Router implements RouterInterface
     /**
      * @var string|null
      */
-    protected $basePrefix;
+    public $basePrefix;
 
     /**
      * @var RouteInterface|null
@@ -425,6 +425,7 @@ class Router implements RouterInterface
      */
     public function setBasePrefix(string $basePrefix): RouterInterface
     {
+        $this->basePrefixNormalized = null;
         $this->basePrefix = $basePrefix;
 
         return $this;
