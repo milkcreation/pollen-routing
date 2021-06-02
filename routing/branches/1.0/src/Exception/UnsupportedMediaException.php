@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class UnsupportedMediaException extends BaseHttpException
+class UnsupportedMediaException extends HttpException
 {
     public function __construct(
         string $message = 'Unsupported Media',

@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class NotFoundException extends BaseHttpException
+class NotFoundException extends HttpException
 {
     public function __construct(
         string $message = 'Not Found',

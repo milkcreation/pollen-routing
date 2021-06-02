@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class UnavailableForLegalReasonsException extends BaseHttpException
+class UnavailableForLegalReasonsException extends HttpException
 {
     public function __construct(
         string $message = 'Unavailable For Legal Reasons',

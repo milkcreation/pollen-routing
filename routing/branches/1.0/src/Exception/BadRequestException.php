@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class BadRequestException extends BaseHttpException
+class BadRequestException extends HttpException
 {
     public function __construct(
         string $message = 'Bad Request',

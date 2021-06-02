@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class ImATeapotException extends BaseHttpException
+class ImATeapotException extends HttpException
 {
     public function __construct(
         string $message = "I'm a teapot",

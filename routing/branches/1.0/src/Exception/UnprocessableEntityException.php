@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class UnprocessableEntityException extends BaseHttpException
+class UnprocessableEntityException extends HttpException
 {
     public function __construct(
         string $message = 'Unprocessable Entity',

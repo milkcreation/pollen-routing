@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class ForbiddenException extends BaseHttpException
+class ForbiddenException extends HttpException
 {
     public function __construct(
         string $message = 'Forbidden',

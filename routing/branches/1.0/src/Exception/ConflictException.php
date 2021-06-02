@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class ConflictException extends BaseHttpException
+class ConflictException extends HttpException
 {
     public function __construct(
         string $message = 'Conflict',
