@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class TooManyRequestsException extends BaseHttpException
+class TooManyRequestsException extends HttpException
 {
     public function __construct(
         string $message = 'Too Many Requests',

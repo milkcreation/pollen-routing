@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class LengthRequiredException extends BaseHttpException
+class LengthRequiredException extends HttpException
 {
     public function __construct(
         string $message = 'Length Required',

@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class ExpectationFailedException extends BaseHttpException
+class ExpectationFailedException extends HttpException
 {
     public function __construct(
         string $message = 'Expectation Failed',

@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class NotAcceptableException extends BaseHttpException
+class NotAcceptableException extends HttpException
 {
     public function __construct(
         string $message = 'Not Acceptable',

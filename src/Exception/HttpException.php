@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Pollen\Routing\Exception;
 
 use Exception;
-use League\Route\Http\Exception as HttpException;
+use League\Route\Http\Exception as BaseHttpException;
 
-class BaseHttpException extends HttpException implements HttpExceptionInterface
+class HttpException extends BaseHttpException implements HttpExceptionInterface
 {
     /**
      * Titre de la page d'affichage de l'exception.

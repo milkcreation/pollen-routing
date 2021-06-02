@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class GoneException extends BaseHttpException
+class GoneException extends HttpException
 {
     public function __construct(
         string $message = 'Gone',

@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class UnauthorizedException extends BaseHttpException
+class UnauthorizedException extends HttpException
 {
     public function __construct(
         string $message = 'Unauthorized',

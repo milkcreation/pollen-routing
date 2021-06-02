@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class PreconditionRequiredException extends BaseHttpException
+class PreconditionRequiredException extends HttpException
 {
     public function __construct(
         string $message = 'Precondition Required',

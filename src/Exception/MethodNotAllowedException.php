@@ -6,7 +6,7 @@ namespace Pollen\Routing\Exception;
 
 use Exception;
 
-class MethodNotAllowedException extends BaseHttpException
+class MethodNotAllowedException extends HttpException
 {
     public function __construct(
         array $allowed = [],
