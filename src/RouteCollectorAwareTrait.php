@@ -12,16 +12,29 @@ use RuntimeException;
 trait RouteCollectorAwareTrait
 {
     /**
-     * Affectation d'un middleware selon un alias de qualification dans le conteneur d'injection de dépendances.
+     * Affectation d'un ou plusieurs middleware selon un alias de qualification dans le conteneur d'injection de dépendances.
      *
-     * @param string $alias
+     * @param string|string[] $aliases
      *
      * @return static
      */
-    public function middle(string $alias): self
+    public function middle($aliases): self
     {
         if (!$this->getContainer()) {
-            throw new RuntimeException('Middleware aliased declaration require dependency injection container');
+            throw new RuntimeException('Middleware aliased declaration require dependency injection container.');
+        }
+
+        if (is_array($aliases)) {
+            foreach ($aliases as $alias) {
+                $this->middle($alias);
+            }
+            return $this;
+        }
+
+        if (is_string($aliases)) {
+            $alias = $aliases;
+        } else {
+            throw new RuntimeException('Middleware alias must be a string type.');
         }
 
         if (!$this->getContainer()->has($alias)){
@@ -30,7 +43,7 @@ trait RouteCollectorAwareTrait
 
         if (!$this->getContainer()->has($alias)) {
             throw new InvalidArgumentException(
-                sprintf('Middleware alias [%s] is not being managed by the container', $alias)
+                sprintf('Middleware alias [%s] is not being managed by the container.', $alias)
             );
         }
 
