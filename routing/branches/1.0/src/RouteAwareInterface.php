@@ -62,11 +62,11 @@ interface RouteAwareInterface extends
     public function setStrategy(StrategyInterface $strategy): StrategyAwareInterface;
 
     /**
-     * @param string $alias
+     * @param string|string[] $aliases
      *
      * @return RouteCollectorAwareTrait|RouteInterface
      */
-    public function middle(string $alias): self;
+    public function middle($aliases): self;
 
     /**
      * @param string $alias
