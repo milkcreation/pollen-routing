@@ -5,27 +5,27 @@ declare(strict_types=1);
 namespace Pollen\Routing;
 
 use Pollen\Http\ResponseInterface;
-use Pollen\View\ViewEngine;
-use Pollen\View\ViewEngineInterface;
+use Pollen\View\Engines\Plates\PlatesViewEngine;
+use Pollen\View\View;
+use Pollen\View\ViewInterface;
 use RuntimeException;
 
 abstract class BaseViewController extends BaseController
 {
     /**
      * Instance du moteur de gabarits d'affichage.
-     * @var ViewEngineInterface
      */
-    protected $viewEngine;
+    protected ?ViewInterface $view = null;
 
     /**
      * Moteur d'affichage des gabarits d'affichage.
      *
-     * @return ViewEngineInterface
+     * @return ViewInterface
      */
-    protected function getViewEngine(): ViewEngineInterface
+    protected function getView(): ViewInterface
     {
-        if ($this->viewEngine === null) {
-            if ((!$dir = $this->viewEngineDirectory()) || !is_dir($dir)) {
+        if ($this->view === null) {
+            if ((!$directory = $this->viewDirectory()) || !is_dir($directory)) {
                 throw new RuntimeException(
                     sprintf(
                         'View Engine Directory unavailable in HttpController [%s]',
@@ -33,14 +33,21 @@ abstract class BaseViewController extends BaseController
                     )
                 );
             }
-            $this->viewEngine = new ViewEngine();
-            if ($container = $this->getContainer()) {
-                $this->viewEngine->setContainer($container);
-            }
 
-            $this->viewEngine->setDirectory($dir);
+            $this->view = View::createFromPlates(
+                function (PlatesViewEngine $platesViewEngine) use ($directory) {
+                    $platesViewEngine->setDirectory($directory);
+
+                    if ($container = $this->getContainer()) {
+                        $this->viewEngine->setContainer($container);
+                    }
+
+                    return $platesViewEngine;
+                }
+            );
         }
-        return $this->viewEngine;
+
+        return $this->view;
     }
 
     /**
@@ -52,7 +59,7 @@ abstract class BaseViewController extends BaseController
      */
     protected function hasView(string $view): bool
     {
-        return $this->getViewEngine()->exists($view);
+        return $this->getView()->getEngine()->exists($view);
     }
 
     /**
@@ -65,19 +72,19 @@ abstract class BaseViewController extends BaseController
      */
     protected function render(string $view, array $datas = []): string
     {
-        return $this->getViewEngine()->render($view, $this->datas($datas)->all());
+        return $this->getView()->render($view, $this->datas($datas)->all());
     }
 
     /**
      * Définition du moteur des gabarits d'affichage.
      *
-     * @param ViewEngineInterface $viewEngine
+     * @param ViewInterface $view
      *
      * @return static
      */
-    public function setViewEngine(ViewEngineInterface $viewEngine): self
+    public function setView(ViewInterface $view): self
     {
-        $this->viewEngine = $viewEngine;
+        $this->view = $view;
 
         return $this;
     }
@@ -95,7 +102,7 @@ abstract class BaseViewController extends BaseController
         $keys = !is_array($key) ? [$key => $value] : $key;
 
         foreach ($keys as $k => $v) {
-            $this->getViewEngine()->share($k, $v);
+            $this->getView()->getEngine()->share($k, $v);
         }
 
         return $this;
@@ -119,5 +126,5 @@ abstract class BaseViewController extends BaseController
      *
      * @return string
      */
-    abstract protected function viewEngineDirectory(): string;
+    abstract protected function viewDirectory(): string;
 }
