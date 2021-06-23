@@ -12,13 +12,14 @@ use Pollen\Http\RedirectResponse;
 use Pollen\Http\RedirectResponseInterface;
 use Pollen\Http\Response;
 use Pollen\Http\ResponseInterface;
-use Pollen\Support\Env;
+use Pollen\Support\DateTime;
 use Pollen\Support\ParamsBag;
 use Pollen\Support\Proxy\ContainerProxy;
 use Pollen\Support\Proxy\HttpRequestProxy;
 use Pollen\Support\Proxy\RouterProxy;
 use Psr\Container\ContainerInterface as Container;
 use SplFileInfo;
+use InvalidArgumentException;
 
 class BaseController
 {
@@ -26,22 +27,7 @@ class BaseController
     use HttpRequestProxy;
     use RouterProxy;
 
-    /**
-     * Indicateur d'activation du mode de débogage.
-     * @var bool|null
-     */
-    protected $debug;
-
-    /**
-     *
-     */
-    protected $datasBag;
-
-    /**
-     * Instance du moteur de gabarits d'affichage.
-     * @var
-     */
-    protected $viewEngine;
+    protected ?ParamsBag $datasBag = null;
 
     /**
      * @param Container|null $container
@@ -62,13 +48,18 @@ class BaseController
     public function boot(): void { }
 
     /**
-     * Vérification d'activation du mode de débogage.
+     * @param ResponseInterface $response
+     * @param int $expire
      *
-     * @return bool
+     * @return ResponseInterface
      */
-    protected function debug(): bool
+    protected function cachedResponse(ResponseInterface $response, int $expire = 60 * 60 * 24 * 365): ResponseInterface
     {
-        return is_null($this->debug) ? Env::isDev() : $this->debug;
+        $response->setSharedMaxAge($expire);
+        $response->setMaxAge($expire);
+        $response->setExpires((new DateTime())->addSeconds($expire));
+
+        return $response;
     }
 
     /**
@@ -116,7 +107,7 @@ class BaseController
      *
      * @return string|int|array|mixed|ParamsBag
      *
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function datas($key = null, $default = null)
     {
@@ -195,7 +186,7 @@ class BaseController
      *
      * @return ResponseInterface
      */
-    protected function response($content = '', int $status = 200, array $headers = []): ResponseInterface
+    protected function response(string $content = '', int $status = 200, array $headers = []): ResponseInterface
     {
         return new Response($content, $status, $headers);
     }
@@ -219,19 +210,5 @@ class BaseController
         array $headers = []
     ): RedirectResponseInterface {
         return $this->router()->getNamedRouteRedirect($name, $params, $isAbsolute, $status, $headers);
-    }
-
-    /**
-     * Définition de l'activation du mode de débogage.
-     *
-     * @param bool $debug
-     *
-     * @return static
-     */
-    public function setDebug(bool $debug = true): self
-    {
-        $this->debug = $debug;
-
-        return $this;
     }
 }

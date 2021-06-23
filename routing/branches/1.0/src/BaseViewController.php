@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Pollen\Routing;
 
 use Pollen\Http\ResponseInterface;
-use Pollen\View\Engines\Plates\PlatesViewEngine;
-use Pollen\View\View;
+use Pollen\Support\ProxyResolver;
 use Pollen\View\ViewInterface;
+use Pollen\View\ViewManager;
+use Pollen\View\ViewManagerInterface;
 use RuntimeException;
 
 abstract class BaseViewController extends BaseController
@@ -25,26 +26,16 @@ abstract class BaseViewController extends BaseController
     protected function getView(): ViewInterface
     {
         if ($this->view === null) {
-            if ((!$directory = $this->viewDirectory()) || !is_dir($directory)) {
-                throw new RuntimeException(
-                    sprintf(
-                        'View Engine Directory unavailable in HttpController [%s]',
-                        get_class($this)
-                    )
+            try {
+                $manager = ViewManager::getInstance();
+            } catch (RuntimeException $e) {
+                $manager = ProxyResolver::getInstance(
+                    ViewManagerInterface::class,
+                    ViewManager::class,
+                    method_exists($this, 'getContainer') ? $this->getContainer() : null
                 );
             }
-
-            $this->view = View::createFromPlates(
-                function (PlatesViewEngine $platesViewEngine) use ($directory) {
-                    $platesViewEngine->setDirectory($directory);
-
-                    if ($container = $this->getContainer()) {
-                        $this->viewEngine->setContainer($container);
-                    }
-
-                    return $platesViewEngine;
-                }
-            );
+            $this->view = $manager->getDefaultView();
         }
 
         return $this->view;
@@ -120,11 +111,4 @@ abstract class BaseViewController extends BaseController
     {
         return $this->response($this->render($view, $datas));
     }
-
-    /**
-     * Répertoire des gabarits d'affichage.
-     *
-     * @return string
-     */
-    abstract protected function viewDirectory(): string;
 }
