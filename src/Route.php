@@ -14,11 +14,6 @@ class Route extends BaseRoute implements RouteInterface
     use RouteCollectorAwareTrait;
 
     /**
-     * @var string|null
-     */
-    protected $pathInfo;
-
-    /**
      * @inheritDoc
      */
     public function setParentGroup(BaseRouteGroup $group): BaseRoute

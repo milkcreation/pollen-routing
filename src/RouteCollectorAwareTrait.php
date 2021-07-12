@@ -12,7 +12,7 @@ use RuntimeException;
 trait RouteCollectorAwareTrait
 {
     /**
-     * Affectation d'un ou plusieurs middleware selon un alias de qualification dans le conteneur d'injection de dépendances.
+     * Register one or many middleware provides by the dependency injection container.
      *
      * @param string|string[] $aliases
      *
@@ -53,7 +53,7 @@ trait RouteCollectorAwareTrait
     }
 
     /**
-     * Affectation d'une stratégie selon un alias de qualification dans le conteneur d'injection de dépendances.
+     * Register one or many strategy provides by the dependency injection container.
      *
      * @param string $alias
      *
@@ -65,19 +65,19 @@ trait RouteCollectorAwareTrait
             throw new RuntimeException('Strategy aliased declaration require dependency injection container');
         }
 
-        if (!$this->getContainer()->has("routing.strategy.{$alias}")) {
+        if (!$this->getContainer()->has("routing.strategy.$alias")) {
             throw new InvalidArgumentException(
                 sprintf('Strategy alias (%s) is not being managed by the container', $alias)
             );
         }
 
-        $this->setStrategy($this->getContainer()->get("routing.strategy.{$alias}"));
+        $this->setStrategy($this->getContainer()->get("routing.strategy.$alias"));
 
         return $this;
     }
 
     /**
-     * Définition d'une route pour la méthode de requête HTTP DELETE.
+     * Add a route for DELETE HTTP method.
      *
      * @param string $path
      * @param string|callable $handler
@@ -90,7 +90,7 @@ trait RouteCollectorAwareTrait
     }
 
     /**
-     * Définition d'une route pour la méthode de requête HTTP GET.
+     * Add a route for GET HTTP method.
      *
      * @param string $path
      * @param string|callable $handler
@@ -103,7 +103,7 @@ trait RouteCollectorAwareTrait
     }
 
     /**
-     * Définition d'une route pour la méthode de requête HTTP OPTIONS.
+     * Add a route for OPTIONS HTTP method.
      *
      * @param string $path
      * @param string|callable $handler
@@ -116,7 +116,7 @@ trait RouteCollectorAwareTrait
     }
 
     /**
-     * Définition d'une route pour la méthode de requête HTTP PATCH.
+     * Add a route for PATCH HTTP method.
      *
      * @param string $path
      * @param string|callable $handler
@@ -129,7 +129,7 @@ trait RouteCollectorAwareTrait
     }
 
     /**
-     * Définition d'une route pour la méthode de requête HTTP POST.
+     * Add a route for POST HTTP method.
      *
      * @param string $path
      * @param string|callable $handler
@@ -142,7 +142,7 @@ trait RouteCollectorAwareTrait
     }
 
     /**
-     * Définition d'une route pour la méthode de requête HTTP PUT.
+     * Add a route for PUT HTTP method.
      *
      * @param string $path
      * @param string|callable $handler
@@ -155,11 +155,11 @@ trait RouteCollectorAwareTrait
     }
 
     /**
-     * Déclaration d'une route dédiée aux requêtes Ajax XmlHttpRequest (Xhr).
+     * Add a route for XMLHttpRequest.
      *
-     * @param string $path Chemin relatif vers la route.
-     * @param string|callable $handler Traitement de la route.
-     * @param string $method Méthode de la requête.
+     * @param string $path
+     * @param string|callable $handler
+     * @param string $method
      *
      * @return RouteInterface
      */

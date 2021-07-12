@@ -11,7 +11,7 @@ use Psr\Http\Server\MiddlewareInterface as BaseMiddlewareInterface;
 interface MiddlewareInterface extends BaseMiddlewareInterface, RouterProxyInterface
 {
     /**
-     * Pré-traitement de la réponse HTTP avant son envoi.
+     * Handle HTTP Response just before it is sent.
      *
      * @param PsrResponse $response
      * @param RouterInterface $router

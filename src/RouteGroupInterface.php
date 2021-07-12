@@ -14,6 +14,8 @@ use Pollen\Support\Proxy\ContainerProxyInterface;
 interface RouteGroupInterface extends ContainerProxyInterface
 {
     /**
+     * Add a route.
+     *
      * @param string $method
      * @param string $path
      * @param $handler

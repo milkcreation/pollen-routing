@@ -10,10 +10,10 @@ use League\Route\Http\Exception as BaseHttpException;
 class HttpException extends BaseHttpException implements HttpExceptionInterface
 {
     /**
-     * Titre de la page d'affichage de l'exception.
-     * @param string $title
+     * HTML Page title showing the exception.
+     * @var string $title
      */
-    protected $title = '';
+    protected string $title = '';
 
     /**
      * @param int $status

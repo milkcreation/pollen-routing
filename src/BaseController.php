@@ -41,7 +41,7 @@ class BaseController
     }
 
     /**
-     * Initialisation du controleur.
+     * Booting.
      *
      * @return void
      */
@@ -63,7 +63,7 @@ class BaseController
     }
 
     /**
-     * Retourne la réponse de téléchargement ou d'affichage d'un fichier.
+     * Returns a BinaryFileResponse allowing to download or display the file.
      *
      * @param SplFileInfo|string $file
      * @param string|null $fileName
@@ -86,7 +86,7 @@ class BaseController
     }
 
     /**
-     * Retourne la réponse JSON HTTP.
+     * Returns a JsonResponse of json serialized data.
      *
      * @param string|array|object|null $data
      * @param int $status
@@ -100,12 +100,12 @@ class BaseController
     }
 
     /**
-     * Définition|Récupération|Instance des données associées.
+     * Returns instance of datasBag|Set list of datas|Get a data value, associated with controller.
      *
      * @param array|string|null $key
      * @param mixed $default
      *
-     * @return string|int|array|mixed|ParamsBag
+     * @return mixed|ParamsBag
      *
      * @throws \InvalidArgumentException
      */
@@ -133,7 +133,7 @@ class BaseController
     }
 
     /**
-     * Liste des données associées par défaut.
+     * List of default datas associated with controller.
      *
      * @return array
      */
@@ -143,19 +143,11 @@ class BaseController
     }
 
     /**
-     * @deprecated
-     */
-    public function params($key = null, $default = null)
-    {
-        return $this->datas($key, $default);
-    }
-
-    /**
-     * Récupération de l'instance du gestionnaire de redirection|Redirection vers un chemin.
+     * Returns a RedirectResponse for an absolute url or a relative path.
      *
-     * @param string $path url absolue|relative de redirection.
-     * @param int $status Statut de redirection.
-     * @param array $headers Liste des entêtes complémentaires associées à la redirection.
+     * @param string $path
+     * @param int $status
+     * @param array $headers
      *
      * @return RedirectResponseInterface
      */
@@ -165,10 +157,10 @@ class BaseController
     }
 
     /**
-     * Redirection vers la page d'origine.
+     * Returns a RedirectResponse to the request referer.
      *
-     * @param int $status Statut de redirection.
-     * @param array $headers Liste des entêtes complémentaires associées à la redirection.
+     * @param int $status
+     * @param array $headers
      *
      * @return RedirectResponseInterface
      */
@@ -178,7 +170,7 @@ class BaseController
     }
 
     /**
-     * Retourne la réponse HTTP.
+     * Returns a Response object.
      *
      * @param string $content .
      * @param int $status
@@ -192,7 +184,7 @@ class BaseController
     }
 
     /**
-     * Redirection vers une route déclarée.
+     * Returns a RedirectResponse for a named route.
      *
      * @param string $name
      * @param array $params

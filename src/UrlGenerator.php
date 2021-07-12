@@ -18,52 +18,52 @@ class UrlGenerator implements UrlGeneratorInterface
     /**
      * @var string|null
      */
-    protected $basePrefix;
+    protected ?string $basePrefix = null;
 
     /**
      * @var string|null
      */
-    protected $host;
+    protected ?string $host = null;
 
     /**
      * @var bool
      */
-    protected $isAbsolute = false;
+    protected bool $isAbsolute = false;
 
     /**
      * @var string
      */
-    protected $path = '';
+    protected string $path = '';
 
     /**
-     * @var int
+     * @var int|null
      */
-    protected $port;
+    protected ?int $port = null;
 
     /**
-     * @var string|null http|https
+     * @var string|null http|https|null
      */
-    protected $scheme;
+    protected ?string $scheme = null;
 
     /**
-     * @var RequestInterface
+     * @var RequestInterface|null
      */
-    protected $request;
+    protected ?RequestInterface $request = null;
 
     /**
-     * @var RouteCollector
+     * @var RouteCollector|null
      */
-    protected $routeCollector;
+    protected ?RouteCollector $routeCollector = null;
 
     /**
-     * @var RouterInterface
+     * @var RouterInterface|null
      */
-    protected $router;
+    protected ?RouterInterface $router = null;
 
     /**
      * @var array
      */
-    protected $urlPatterns = [
+    protected array $urlPatterns = [
         '/{(.+?):number}/'        => '{$1:[0-9]+}',
         '/{(.+?):word}/'          => '{$1:[a-zA-Z]+}',
         '/{(.+?):alphanum_dash}/' => '{$1:[a-zA-Z0-9-_]+}',
@@ -124,7 +124,7 @@ class UrlGenerator implements UrlGeneratorInterface
                         break;
                     }
 
-                    if (!preg_match("#{$regex}+#", (string)$segment)) {
+                    if (!preg_match("#$regex+#", (string)$segment)) {
                         $throw = new LogicException(
                             'Invalid Route Url: Insufficient number of arguments provided'
                         );
@@ -169,7 +169,7 @@ class UrlGenerator implements UrlGeneratorInterface
     }
 
     /**
-     * Traitement du chemin suivant les motifs d'urls déclarés.
+     * Parse route path according to url patterns.
      *
      * @param string $path
      *

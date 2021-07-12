@@ -6,5 +6,4 @@ namespace Pollen\Routing;
 
 interface UrlMatcherInterface
 {
-
 }

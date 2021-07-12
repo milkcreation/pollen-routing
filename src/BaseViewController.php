@@ -14,12 +14,13 @@ use RuntimeException;
 abstract class BaseViewController extends BaseController
 {
     /**
-     * Instance du moteur de gabarits d'affichage.
+     * View instance.
+     * @var ViewInterface|null
      */
     protected ?ViewInterface $view = null;
 
     /**
-     * Moteur d'affichage des gabarits d'affichage.
+     * Resolve view instance.
      *
      * @return ViewInterface
      */
@@ -42,9 +43,9 @@ abstract class BaseViewController extends BaseController
     }
 
     /**
-     * Vérification d'existence d'un gabarit d'affichage.
+     * Checks if view template exists.
      *
-     * @param string $view Nom de qualification du gabarit.
+     * @param string $view
      *
      * @return bool
      */
@@ -54,20 +55,20 @@ abstract class BaseViewController extends BaseController
     }
 
     /**
-     * Récupération de l'affichage d'un gabarit.
+     * Get template render.
      *
-     * @param string $view Nom de qualification du gabarit.
-     * @param array $datas Liste des variables passées en argument.
+     * @param string $view
+     * @param array $datas
      *
      * @return string
      */
     protected function render(string $view, array $datas = []): string
     {
-        return $this->getView()->render($view, $this->datas($datas)->all());
+        return $this->getView()->render($view, ($d = $this->datas($datas)) ? $d->all() : []);
     }
 
     /**
-     * Définition du moteur des gabarits d'affichage.
+     * Set view instance.
      *
      * @param ViewInterface $view
      *
@@ -81,7 +82,7 @@ abstract class BaseViewController extends BaseController
     }
 
     /**
-     * Définition des variables partagées à l'ensemble des vues.
+     * Shares datas in all view templates.
      *
      * @param string|array $key
      * @param mixed $value
@@ -100,10 +101,10 @@ abstract class BaseViewController extends BaseController
     }
 
     /**
-     * Génération de la réponse HTTP associée à l'affichage d'un gabarit.
+     * Returns a HTTP response for a view template.
      *
-     * @param string $view Nom de qualification du gabarit.
-     * @param array $datas Liste des variables passées en argument.
+     * @param string $view
+     * @param array $datas
      *
      * @return ResponseInterface
      */
