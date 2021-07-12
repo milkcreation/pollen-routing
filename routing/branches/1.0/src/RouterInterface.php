@@ -23,7 +23,7 @@ interface RouterInterface extends
     MiddlewareAwareInterface
 {
     /**
-     * Déclaration d'une route.
+     * Add a new route by its instance.
      *
      * @param RouteInterface $route
      *
@@ -32,7 +32,7 @@ interface RouterInterface extends
     public function addRoute(RouteInterface $route): RouterInterface;
 
     /**
-     * Pré-traitement de l'envoi de la réponse HTTP.
+     * Handle HTTP Response just before it is sent.
      *
      * @param PsrResponse $response
      *
@@ -41,42 +41,42 @@ interface RouterInterface extends
     public function beforeSendResponse(PsrResponse $response): PsrResponse;
 
     /**
-     * Récupération de la route courante.
+     * Get current route.
      *
      * @return RouteInterface|null
      */
     public function current(): ?RouteInterface;
 
     /**
-     * Récupération de l'intitulé d'une route qualifiée.
+     * Get current route name if its exists.
      *
      * @return string
      */
     public function currentRouteName(): ?string;
 
     /**
-     * Récupération du préfixe de base des chemins de route.
+     * Get base path prefix for routes.
      *
      * @return string
      */
     public function getBasePrefix(): string;
 
     /**
-     * Récupération de la fonction de rappel.
+     * Get fallback route handler.
      *
      * @return callable|null
      */
     public function getFallbackCallable(): ?callable;
 
     /**
-     * Récupération de la requête HTTP de traitement.
+     * Get HTTP Request instance for handling route collection.
      *
      * @return RequestInterface
      */
     public function getHandleRequest(): RequestInterface;
 
     /**
-     * Récupération d'une route qualifiée.
+     * Get named route instance.
      *
      * @param string $name
      *
@@ -85,7 +85,7 @@ interface RouterInterface extends
     public function getNamedRoute(string $name): ?RouteInterface;
 
     /**
-     * Récupération de la réponse HTTP de redirection vers une route qualifiée.
+     * Get named route RedirectResponse object.
      *
      * @param string $name
      * @param array $args
@@ -104,7 +104,7 @@ interface RouterInterface extends
     ): RedirectResponseInterface;
 
     /**
-     * Récupération de l'url d'une route qualifiée.
+     * Get named route url if its exists.
      *
      * @param string $name
      * @param array $args
@@ -115,7 +115,7 @@ interface RouterInterface extends
     public function getNamedRouteUrl(string $name, array $args = [], bool $isAbsolute = false): ?string;
 
     /**
-     * Récupération de l'instance du gestionnaire de la collection de routes.
+     * Get route collector instance.
      *
      * @return RouteCollectorInterface
      */
@@ -141,7 +141,7 @@ interface RouterInterface extends
     ): RedirectResponseInterface;
 
     /**
-     * Récupération de l'url d'une route.
+     * Get RedirectResponse object from a route instance.
      *
      * @param RouteInterface $route
      * @param array $args
@@ -152,7 +152,7 @@ interface RouterInterface extends
     public function getRouteUrl(RouteInterface $route, array $args = [], bool $isAbsolute = false): ?string;
 
     /**
-     * Déclaration d'un groupe.
+     * Add a new route group.
      *
      * @param string $prefix
      * @param callable $group
@@ -162,21 +162,21 @@ interface RouterInterface extends
     public function group(string $prefix, callable $group): RouteGroupInterface;
 
     /**
-     * Traitement de la requête HTTP.
+     * HTTP request instance to handle route collection.
      *
      * @return ResponseInterface
      */
     public function handleRequest(): ResponseInterface;
 
     /**
-     * Vérification d'existence d'une fonction de rappel.
+     * Checks if a fallback route handler exists.
      *
      * @return bool
      */
     public function hasFallback(): bool;
 
     /**
-     * Déclaration d'une route.
+     * Add a new route.
      *
      * @param string $method
      * @param string $path
@@ -187,7 +187,7 @@ interface RouterInterface extends
     public function map(string $method, string $path, $handler): RouteInterface;
 
     /**
-     * Expédition de la réponse
+     * Send the HTTP response.
      *
      * @param ResponseInterface $response
      *
@@ -196,7 +196,7 @@ interface RouterInterface extends
     public function sendResponse(ResponseInterface $response): bool;
 
     /**
-     * Définition du préfixe de base des chemins de route.
+     * Set base path prefix for routes.
      *
      * @param string $basePrefix
      *
@@ -205,7 +205,7 @@ interface RouterInterface extends
     public function setBasePrefix(string $basePrefix): RouterInterface;
 
     /**
-     * Définition de la route courante.
+     * Set current route instance.
      *
      * @param RouteInterface $route
      *
@@ -214,16 +214,7 @@ interface RouterInterface extends
     public function setCurrentRoute(RouteInterface $route): RouterInterface;
 
     /**
-     * Définition de la requête HTTP de traitement.
-     *
-     * @param RequestInterface $handleRequest
-     *
-     * @return static
-     */
-    public function setHandleRequest(RequestInterface $handleRequest): RouterInterface;
-
-    /**
-     * Définition de la route de rappel.
+     * Set the fallback route handler.
      *
      * @param callable|string $fallback
      *
@@ -232,7 +223,16 @@ interface RouterInterface extends
     public function setFallback($fallback): RouterInterface;
 
     /**
-     * Termine le cycle de la requête et de la réponse HTTP.
+     * Set the handle HTTP request.
+     *
+     * @param RequestInterface $handleRequest
+     *
+     * @return static
+     */
+    public function setHandleRequest(RequestInterface $handleRequest): RouterInterface;
+
+    /**
+     * Terminate the HTTP cycle.
      *
      * @param RequestInterface $request
      * @param ResponseInterface $response

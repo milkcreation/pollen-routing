@@ -25,7 +25,6 @@ use Psr\Container\ContainerInterface as Container;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
 use Psr\Http\Server\MiddlewareInterface as BaseMiddlewareInterface;
 use RuntimeException;
-use Throwable;
 
 class Router implements RouterInterface
 {
@@ -36,40 +35,46 @@ class Router implements RouterInterface
     use RouteCollectorAwareTrait;
 
     /**
-     * Instance principale.
+     * Router main instance.
      * @var static|null
      */
-    private static $instance;
+    private static ?RouterInterface $instance = null;
 
     /**
+     * Normalized base path prefix for routes.
      * @var string|null
      */
-    private $basePrefixNormalized;
+    private ?string $basePrefixNormalized = null;
 
     /**
+     * Base path prefix for routes.
      * @var string|null
      */
-    public $basePrefix;
+    public ?string $basePrefix = null;
 
     /**
+     * Current route instance.
      * @var RouteInterface|null
      */
-    protected $currentRoute;
+    protected ?RouteInterface $currentRoute = null;
 
     /**
-     * @var callable
+     * Fallback route handler.
+     * @var callable|null
      */
     protected $fallback;
 
     /**
+     * HTTP Request instance for handling route collection.
      * @var RequestInterface|null
      */
-    protected $handleRequest;
+    protected ?RequestInterface $handleRequest = null;
 
     /**
-     * @var RouteCollectorInterface
+     * Route collector instance.
+     * @var RouteCollectorInterface|null
      */
-    protected $routeCollector;
+    protected ?RouteCollectorInterface $routeCollector = null;
 
     /**
      * @param array $config
@@ -93,7 +98,7 @@ class Router implements RouterInterface
     }
 
     /**
-     * Récupération de l'instance principale.
+     * Get route main instance.
      *
      * @return static
      */
@@ -353,7 +358,7 @@ class Router implements RouterInterface
     }
 
     /**
-     * Récupération de la classe de rappel.
+     * Get fallback route class instance.
      *
      * @param string $class
      *
@@ -442,9 +447,7 @@ class Router implements RouterInterface
     }
 
     /**
-     * @param callable|string $fallback
-     *
-     * @return $this
+     * @inheritDoc
      */
     public function setFallback($fallback): RouterInterface
     {
@@ -454,9 +457,7 @@ class Router implements RouterInterface
     }
 
     /**
-     * @param RequestInterface $handleRequest
-     *
-     * @return $this
+     * @inheritDoc
      */
     public function setHandleRequest(RequestInterface $handleRequest): RouterInterface
     {

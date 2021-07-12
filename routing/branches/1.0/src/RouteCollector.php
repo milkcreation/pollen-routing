@@ -21,9 +21,10 @@ use Throwable;
 class RouteCollector extends BaseRouteCollector implements RouteCollectorInterface
 {
     /**
+     * Router instance.
      * @var RouterInterface
      */
-    protected $router;
+    protected RouterInterface $router;
 
     /**
      * @param RouterInterface $router
@@ -37,7 +38,7 @@ class RouteCollector extends BaseRouteCollector implements RouteCollectorInterfa
     }
 
     /**
-     * Appel des méthodes du collecteur de routes délégué.
+     * Delegate method call of the route collector.
      *
      * @param string $method
      * @param array $arguments
@@ -145,7 +146,7 @@ class RouteCollector extends BaseRouteCollector implements RouteCollectorInterfa
             /** @var RouteInterface $route */
             $route = $this->getNamedRoute($name);
 
-            return $route;
+             $route;
         } catch(Exception $e) {
             return null;
         }

@@ -15,7 +15,7 @@ use Psr\Http\Message\ServerRequestInterface as PsrRequest;
 interface RouteCollectorInterface extends BaseRouteCollectorInterface
 {
     /**
-     * Déclaration d'un groupe.
+     * Add a new group by its instance.
      *
      * @param RouteGroupInterface $group
      *
@@ -24,7 +24,7 @@ interface RouteCollectorInterface extends BaseRouteCollectorInterface
     public function addGroup(RouteGroupInterface $group): RouteCollectorInterface;
 
     /**
-     * Déclaration d'une route.
+     * Add a new route by its instance.
      *
      * @param RouteInterface $route
      *
@@ -33,7 +33,7 @@ interface RouteCollectorInterface extends BaseRouteCollectorInterface
     public function addRoute(RouteInterface $route): RouteCollectorInterface;
 
     /**
-     * Répartiteur.
+     * Route dispatching.
      *
      * @param PsrRequest $request
      *
@@ -42,7 +42,7 @@ interface RouteCollectorInterface extends BaseRouteCollectorInterface
     public function dispatch(PsrRequest $request): PsrResponse;
 
     /**
-     * Récupération d'un route qualifiée
+     * Get a route by its name.
      *
      * @param string $name
      *
@@ -51,14 +51,14 @@ interface RouteCollectorInterface extends BaseRouteCollectorInterface
     public function getRoute(string $name): ?RouteInterface;
 
     /**
-     * Récupération des motifs d'urls déclarés.
+     * Get routes url patterns.
      *
      * @return array
      */
     public function getUrlPatterns(): array;
 
     /**
-     * Préparation des routes déclarées.
+     * Prepare registered routes.
      *
      * @param PsrRequest $request
      *

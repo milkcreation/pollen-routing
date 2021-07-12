@@ -14,7 +14,7 @@ use Pollen\Support\Proxy\ContainerProxyInterface;
 interface RouteInterface extends ContainerProxyInterface, RouteAwareInterface
 {
     /**
-     * Définition du groupe parent.
+     * Set parent group.
      *
      * @param BaseRouteGroup $group
      *

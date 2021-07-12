@@ -12,9 +12,10 @@ use Psr\Http\Message\ServerRequestInterface as PsrRequest;
 class RouteDispatcher extends BaseRouteDispatcher
 {
     /**
+     * Router instance.
      * @var RouterInterface $router
      */
-    protected $router;
+    protected RouterInterface $router;
 
     /**
      * @param RouterInterface $router

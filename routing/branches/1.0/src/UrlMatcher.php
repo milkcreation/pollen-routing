@@ -10,16 +10,16 @@ use Pollen\Http\RequestInterface;
 class UrlMatcher implements UrlMatcherInterface
 {
     /**
-     * Instance de la requête HTTP.
+     * HTTP request instance.
      * @var RequestInterface
      */
-    protected $request;
+    protected RequestInterface $request;
 
     /**
-     * Instance du gestionnaire de routage.
+     * Router instance.
      * @var RouterInterface
      */
-    protected $router;
+    protected RouterInterface $router;
 
     /**
      * @param RouterInterface $router
@@ -50,7 +50,7 @@ class UrlMatcher implements UrlMatcherInterface
             $this->request->attributes->set('_route', $route);
 
             foreach((array)$match[2] as $varKey => $varVal) {
-                $this->request->attributes->set("_{$varKey}", $varVal);
+                $this->request->attributes->set("_$varKey", $varVal);
             }
         }
 

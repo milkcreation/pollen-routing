@@ -10,14 +10,14 @@ use Throwable;
 interface HttpExceptionInterface extends BaseHttpExceptionInterface, Throwable
 {
     /**
-     * Récupération du titre de la page d'affichage de l'exception.
+     * Get HTML page title showing the exception.
      *
      * @return string
      */
     public function getTitle(): string;
 
     /**
-     * Définition du titre de la page d'affichage de l'exception.
+     * Set HTML page title showing the exception.
      *
      * @param string $title
      *

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Pollen\Routing;
 
 use Pollen\Http\JsonResponse;
-use Pollen\Http\JsonResponseInterface;
 use Pollen\Http\RedirectResponse;
 use Pollen\Support\Proxy\HttpRequestProxy;
 use Pollen\Support\Proxy\RouterProxy;
@@ -35,7 +34,7 @@ abstract class BaseMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Retourne la réponse JSON HTTP.
+     * Returns a JsonResponse of json serialized data.
      *
      * @param string|array|object|null $data
      * @param int $status
@@ -49,11 +48,11 @@ abstract class BaseMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Récupération de l'instance du gestionnaire de redirection|Redirection vers un chemin.
+     * Returns a RedirectResponse for an absolute url or a relative path.
      *
-     * @param string $path url absolue|relative de redirection.
-     * @param int $status Statut de redirection.
-     * @param array $headers Liste des entêtes complémentaires associées à la redirection.
+     * @param string $path
+     * @param int $status
+     * @param array $headers
      *
      * @return PsrResponse
      */
@@ -63,7 +62,7 @@ abstract class BaseMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Redirection vers la page d'origine.
+     * Returns a RedirectResponse to the request referer.
      *
      * @param int $status Statut de redirection.
      * @param array $headers Liste des entêtes complémentaires associées à la redirection.
@@ -76,7 +75,7 @@ abstract class BaseMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Redirection vers une route déclarée.
+     * Returns a RedirectResponse for a named route.
      *
      * @param string $name
      * @param array $params

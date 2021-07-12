@@ -9,7 +9,7 @@ use Pollen\Support\Proxy\HttpRequestProxyInterface;
 interface UrlGeneratorInterface extends HttpRequestProxyInterface
 {
     /**
-     * Récupération de l'url.
+     * Get url.
      *
      * @param array $args
      *
@@ -18,7 +18,7 @@ interface UrlGeneratorInterface extends HttpRequestProxyInterface
     public function get(array $args = []): string;
 
     /**
-     * Définition du format de sortie de l'url (absolue|relative)
+     * Set if output url format is absolute.
      *
      * @var bool $isAbsolute
      *
@@ -27,7 +27,7 @@ interface UrlGeneratorInterface extends HttpRequestProxyInterface
     public function setAbsoluteEnabled(bool $isAbsolute = false): UrlGeneratorInterface;
 
     /**
-     * Définition du prefixe de base de l'url (REWRITE_BASE).
+     * Set url base prefix.
      *
      * @var string|null $basePrefix
      *
@@ -36,7 +36,7 @@ interface UrlGeneratorInterface extends HttpRequestProxyInterface
     public function setBasePrefix(?string $basePrefix = null): UrlGeneratorInterface;
 
     /**
-     * Définition de l'hôte (domaine) de l'url.
+     * Set url host.
      *
      * @var string|null $host
      *
@@ -45,7 +45,7 @@ interface UrlGeneratorInterface extends HttpRequestProxyInterface
     public function setHost(?string $host = null): UrlGeneratorInterface;
 
     /**
-     * Définition du port de l'url.
+     * Set url port.
      *
      * @var int|null $port
      *
@@ -54,7 +54,7 @@ interface UrlGeneratorInterface extends HttpRequestProxyInterface
     public function setPort(?int $port = null): UrlGeneratorInterface;
 
     /**
-     * Définition du protocole de l'url (http|https)
+     * Set url scheme.
      *
      * @param string|null $scheme
      *
@@ -63,7 +63,7 @@ interface UrlGeneratorInterface extends HttpRequestProxyInterface
     public function setScheme(?string $scheme = null): UrlGeneratorInterface;
 
     /**
-     * Définition des motifs de substitution de l'url.
+     * Set url patterns.
      *
      * @param array $urlPatterns
      *

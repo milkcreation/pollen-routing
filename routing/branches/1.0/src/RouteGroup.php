@@ -14,9 +14,10 @@ class RouteGroup extends BaseRouteGroup implements RouteGroupInterface
     use RouteCollectorAwareTrait;
 
     /**
+     * Router instance.
      * @var RouterInterface
      */
-    protected $router;
+    protected RouterInterface $router;
 
     /**
      * @param string $prefix
