@@ -1,14 +1,14 @@
 {
   "name": "pollen-solutions/routing",
   "description": "Pollen Solutions - Routing Component - HTTP request mapping and HTTP response resolution.",
-  "homepage": "https://www.presstify.com/pollen-solutions/routing/",
+  "homepage": "https://github.com/milkcreation/pollen-routing.git",
   "keywords": [
     "pollen-solutions",
     "component",
     "PSR-7",
     "PSR-15"
   ],
-  "time": "2021-07-09",
+  "time": "2021-09-15",
   "license": "MIT",
   "authors": [
     {
